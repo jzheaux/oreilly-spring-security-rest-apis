@@ -1,0 +1,52 @@
+package io.jzheaux.springsecurity.goals;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.transaction.Transactional;
+import java.util.Optional;
+import java.util.UUID;
+
+@RestController
+public class GoalController {
+	private final GoalRepository goals;
+
+	public GoalController(GoalRepository goals) {
+		this.goals = goals;
+	}
+
+	@GetMapping("/goals")
+	public Iterable<Goal> read() {
+		return this.goals.findAll();
+	}
+
+	@GetMapping("/goal/{id}")
+	public Optional<Goal> read(@PathVariable("id") UUID id) {
+		return this.goals.findById(id);
+	}
+
+	@PostMapping("/goal")
+	public Goal make(@RequestBody String text) {
+		String owner = "user";
+		Goal goal = new Goal(text, owner);
+		return this.goals.save(goal);
+	}
+
+	@PutMapping(path="/goal/{id}/revise")
+	@Transactional
+	public Optional<Goal> revise(@PathVariable("id") UUID id, @RequestBody String text) {
+		this.goals.revise(id, text);
+		return read(id);
+	}
+
+	@PutMapping("/goal/{id}/complete")
+	@Transactional
+	public Optional<Goal> complete(@PathVariable("id") UUID id) {
+		this.goals.complete(id);
+		return read(id);
+	}
+}

@@ -1,0 +1,29 @@
+<html>
+    <head>
+        <script
+                src="https://code.jquery.com/jquery-3.4.1.min.js"
+                integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+                crossorigin="anonymous"></script>
+        <script
+                src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+        <script type="application/javascript">
+            var goals = function() {
+                $.ajax({
+                    url: "http://localhost:8080/goals",
+                    xhrFields: {
+                        withCredentials: true
+                    }
+                })
+                .done(function( data ) {
+                    $("#goals").html(JSON.stringify(data, null, "\t"));
+                });
+            };
+
+            $(document).ready(function() {
+                $("#show").click(goals)
+            });
+        </script>
+    </head>
+    <p><button id="show">Goals</button></p>
+    <pre id="goals"></pre>
+</html>

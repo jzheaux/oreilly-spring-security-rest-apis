@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <script
+                src="https://code.jquery.com/jquery-3.4.1.min.js"
+                integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+                crossorigin="anonymous"></script>
+        <script
+                src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+        <script
+                src="http://localhost:9999/auth/js/keycloak.js"></script>
+        <script type="application/javascript">
+            var keycloak = new Keycloak({
+              "realm": "one",
+              "auth-server-url": "http://localhost:9999/auth",
+              "ssl-required": "external",
+              "resource": "spa",
+              "clientId": "spa",
+              "public-client": true,
+              "confidential-port": 0
+            });
+
+            var goals = function() {
+                $.ajax({
+                    url: "http://localhost:8080/goals",
+                    headers: {"Authorization": "Bearer " + keycloak.token}
+                })
+                .done(function( data ) {
+                    $("#goals").html(JSON.stringify(data, null, "\t"));
+                });
+            };
+
+            $(document).ready(function() {
+                var login = keycloak.login;
+                keycloak.login = function(options) {
+                    options.scope = "user:read goal:read";
+                    return login(options);
+                };
+                keycloak.init({
+                    onLoad: 'login-required'
+                }).success(function(authenticated) {
+                    if (authenticated) {
+                        $("#show").click(goals);
+                    }
+                }).error(function() {
+                    alert('failed to initialize');
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <button id="show">Goals</button>
+        <pre id="goals"></pre>
+    </body>
+</html>

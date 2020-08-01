@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set +x
+
+http :8080/goals "Authorization:Bearer $TOKEN"
+
+set -x
