@@ -37,8 +37,7 @@ public class GoalController {
 	}
 
 	@PostMapping("/goal")
-	public Goal make(@RequestBody String text) {
-		String owner = "user";
+	public Goal make(@CurrentUsername String owner, @RequestBody String text) {
 		Goal goal = new Goal(text, owner);
 		return this.goals.save(goal);
 	}
