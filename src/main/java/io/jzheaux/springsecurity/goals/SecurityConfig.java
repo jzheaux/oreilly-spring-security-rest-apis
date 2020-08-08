@@ -30,7 +30,8 @@ public class SecurityConfig {
 				registry.addMapping("/**")
 						.allowedOrigins("http://127.0.0.1:8081")
 						.allowedMethods("GET", "POST", "PUT")
-						.allowedHeaders("Content-Type")
+						.allowedHeaders("X-CSRF-TOKEN", "Content-Type")
+						.exposedHeaders("X-CSRF-TOKEN")
 						.allowCredentials(true)
 						.maxAge(0);
 			}
