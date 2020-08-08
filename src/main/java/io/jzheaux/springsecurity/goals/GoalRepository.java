@@ -10,10 +10,10 @@ import java.util.UUID;
 @Repository
 public interface GoalRepository extends CrudRepository<Goal, UUID> {
 	@Modifying
-	@Query("UPDATE Goal SET text = :text WHERE id = :id")
+	@Query("UPDATE Goal SET text = :text WHERE id = :id AND owner = ?#{authentication.name}")
 	void revise(UUID id, String text);
 
 	@Modifying
-	@Query("UPDATE Goal SET completed = 1 WHERE id = :id")
+	@Query("UPDATE Goal SET completed = 1 WHERE id = :id AND owner = ?#{authentication.name}")
 	void complete(UUID id);
 }
