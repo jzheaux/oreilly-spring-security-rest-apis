@@ -30,5 +30,11 @@ public class GoalInitializer implements SmartInitializingSingleton {
 		User hasWrite = new User("haswrite", "{bcrypt}$2a$10$3njzOWhsz20aimcpMamJhOnX9Pb4Nk3toq8OO0swIy5EPZnb1YyGe");
 		hasWrite.grantAuthority("goal:write");
 		this.users.save(hasWrite);
+
+		User admin = new User("admin", "{bcrypt}$2a$10$3njzOWhsz20aimcpMamJhOnX9Pb4Nk3toq8OO0swIy5EPZnb1YyGe");
+		admin.grantAuthority("goal:read");
+		admin.grantAuthority("goal:write");
+		admin.grantAuthority("ROLE_ADMIN");
+		this.users.save(admin);
 	}
 }
