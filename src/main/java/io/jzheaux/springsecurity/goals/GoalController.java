@@ -1,5 +1,6 @@
 package io.jzheaux.springsecurity.goals;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ public class GoalController {
 	}
 
 	@GetMapping("/goals")
+	@PreAuthorize("hasAuthority('goal:read')")
 	public Iterable<Goal> read() {
 		Iterable<Goal> goals = this.goals.findAll();
 		for (Goal goal : goals) {
@@ -32,17 +34,20 @@ public class GoalController {
 	}
 
 	@GetMapping("/goal/{id}")
+	@PreAuthorize("hasAuthority('goal:read')")
 	public Optional<Goal> read(@PathVariable("id") UUID id) {
 		return this.goals.findById(id).map(this::addName);
 	}
 
 	@PostMapping("/goal")
+	@PreAuthorize("hasAuthority('goal:write')")
 	public Goal make(@CurrentUsername String owner, @RequestBody String text) {
 		Goal goal = new Goal(text, owner);
 		return this.goals.save(goal);
 	}
 
 	@PutMapping(path="/goal/{id}/revise")
+	@PreAuthorize("hasAuthority('goal:write')")
 	@Transactional
 	public Optional<Goal> revise(@PathVariable("id") UUID id, @RequestBody String text) {
 		this.goals.revise(id, text);
@@ -50,6 +55,7 @@ public class GoalController {
 	}
 
 	@PutMapping("/goal/{id}/complete")
+	@PreAuthorize("hasAuthority('goal:write')")
 	@Transactional
 	public Optional<Goal> complete(@PathVariable("id") UUID id) {
 		this.goals.complete(id);
@@ -57,6 +63,7 @@ public class GoalController {
 	}
 
 	@PutMapping("/goal/{id}/share")
+	@PreAuthorize("hasAuthority('goal:write')")
 	@Transactional
 	public Optional<Goal> share(@AuthenticationPrincipal User user, @PathVariable("id") UUID id) {
 		Optional<Goal> goal = read(id);
