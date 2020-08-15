@@ -1,5 +1,6 @@
 package io.jzheaux.springsecurity.goals;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,14 +15,22 @@ import java.util.UUID;
 @RestController
 public class GoalController {
 	private final GoalRepository goals;
+	private final UserRepository users;
 
-	public GoalController(GoalRepository goals) {
+	public GoalController(GoalRepository goals, UserRepository users) {
 		this.goals = goals;
+		this.users = users;
 	}
 
 	@GetMapping("/goals")
 	public Iterable<Goal> read() {
-		return this.goals.findAll();
+		Iterable<Goal> goals = this.goals.findAll();
+		for (Goal goal : goals) {
+			String name = this.users.findByUsername(goal.getOwner())
+					.map(User::getFullName).orElse("none");
+			goal.setText(goal.getText() + ", by " + name);
+		}
+		return goals;
 	}
 
 	@GetMapping("/goal/{id}")
@@ -48,5 +57,18 @@ public class GoalController {
 	public Optional<Goal> complete(@PathVariable("id") UUID id) {
 		this.goals.complete(id);
 		return read(id);
+	}
+
+	@PutMapping("/goal/{id}/share")
+	@Transactional
+	public Optional<Goal> share(@AuthenticationPrincipal User user, @PathVariable("id") UUID id) {
+		Optional<Goal> goal = read(id);
+		goal.filter(r -> r.getOwner().equals(user.getUsername()))
+				.map(Goal::getText).ifPresent(text -> {
+			for (User friend : user.getFriends()) {
+				make(text);
+			}
+		});
+		return goal;
 	}
 }
