@@ -22,6 +22,9 @@ public class GoalsApplication extends WebSecurityConfigurerAdapter {
 				.anyRequest().authenticated()
 			)
 			.httpBasic(withDefaults())
+			.oauth2ResourceServer(oauth2 -> oauth2
+				.jwt(withDefaults())
+			)
 			.cors(withDefaults());
 	}
 
