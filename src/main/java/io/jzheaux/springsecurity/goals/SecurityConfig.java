@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -36,5 +39,19 @@ public class SecurityConfig {
 						.maxAge(0);
 			}
 		};
+	}
+
+	@Bean
+	JwtAuthenticationConverter authenticationConverter(JwtGrantedAuthoritiesConverter authoritiesConverter) {
+		JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
+		authenticationConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+		return authenticationConverter;
+	}
+
+	@Bean
+	JwtGrantedAuthoritiesConverter authoritiesConverter() {
+		JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+		authoritiesConverter.setAuthorityPrefix("");
+		return authoritiesConverter;
 	}
 }
