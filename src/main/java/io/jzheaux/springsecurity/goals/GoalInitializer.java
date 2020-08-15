@@ -22,11 +22,13 @@ public class GoalInitializer implements SmartInitializingSingleton {
 		User user = new User("user", "{bcrypt}$2a$10$3njzOWhsz20aimcpMamJhOnX9Pb4Nk3toq8OO0swIy5EPZnb1YyGe");
 		user.setFullName("User Userson");
 		user.grantAuthority("goal:read");
+		user.grantAuthority(("user:read"));
 		this.users.save(user);
 
 		User hasRead = new User("hasread", "{bcrypt}$2a$10$3njzOWhsz20aimcpMamJhOnX9Pb4Nk3toq8OO0swIy5EPZnb1YyGe");
 		hasRead.setFullName("Has Read");
 		hasRead.grantAuthority("goal:read");
+		hasRead.grantAuthority(("user:read"));
 		this.users.save(hasRead);
 
 		User hasWrite = new User("haswrite", "{bcrypt}$2a$10$3njzOWhsz20aimcpMamJhOnX9Pb4Nk3toq8OO0swIy5EPZnb1YyGe");
