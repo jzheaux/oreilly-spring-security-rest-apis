@@ -2,12 +2,13 @@ package io.jzheaux.springsecurity.goals;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.introspection.NimbusOpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -40,6 +41,17 @@ public class GoalsApplication extends WebSecurityConfigurerAdapter {
 						.allowedHeaders("Authorization");
 			}
 		};
+	}
+
+	@Bean
+	public OpaqueTokenIntrospector introspector(
+			UserRepository users, OAuth2ResourceServerProperties properties) {
+		OpaqueTokenIntrospector introspector = new NimbusOpaqueTokenIntrospector(
+				properties.getOpaquetoken().getIntrospectionUri(),
+				properties.getOpaquetoken().getClientId(),
+				properties.getOpaquetoken().getClientSecret()
+		);
+		return new UserRepositoryOpaqueTokenIntrospector(users, introspector);
 	}
 
 	public static void main(String[] args) {
