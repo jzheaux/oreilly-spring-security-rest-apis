@@ -3,7 +3,10 @@ package io.jzheaux.springsecurity.goals;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,10 +35,15 @@ public class GoalController {
 	@PostFilter("@post.filter(#root)")
 	public Iterable<Goal> read() {
 		Iterable<Goal> goals = this.goals.findAll();
-		for (Goal goal : goals) {
-			String name = this.users.findByUsername(goal.getOwner())
-					.map(User::getFullName).orElse("none");
-			goal.setText(goal.getText() + ", by " + name);
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		boolean hasUserRead = authentication.getAuthorities().contains
+				(new SimpleGrantedAuthority("user:read"));
+		if (hasUserRead) {
+			for (Goal goal : goals) {
+				String name = this.users.findByUsername(goal.getOwner())
+						.map(User::getFullName).orElse("none");
+				goal.setText(goal.getText() + ", by " + name);
+			}
 		}
 		return goals;
 	}
