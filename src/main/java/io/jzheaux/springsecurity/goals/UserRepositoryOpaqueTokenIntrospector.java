@@ -36,10 +36,10 @@ public class UserRepositoryOpaqueTokenIntrospector
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 		authorities.retainAll(scopes);
-
-		// add the virtual authority goal:share that's based on whether this
-		// authentication can goal:write authority as well as the user has a premium membership
-
+		if ("premium".equals(user.getSubscription()) &&
+			authorities.contains(new SimpleGrantedAuthority("goal:write"))) {
+			authorities.add(new SimpleGrantedAuthority("goal:share"));
+		}
 		return new UserOAuth2AuthenticatedPrincipal(user, principal.getAttributes(), authorities);
 	}
 

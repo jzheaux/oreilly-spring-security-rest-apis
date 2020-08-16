@@ -81,7 +81,7 @@ public class GoalController {
 	}
 
 	@PutMapping("/goal/{id}/share")
-	@PreAuthorize("hasAuthority('goal:write')")
+	@PreAuthorize("hasAuthority('goal:share')")
 	@PostAuthorize("@post.authorize(#root)")
 	@Transactional
 	public Optional<Goal> share(@AuthenticationPrincipal User user, @PathVariable("id") UUID id) {
