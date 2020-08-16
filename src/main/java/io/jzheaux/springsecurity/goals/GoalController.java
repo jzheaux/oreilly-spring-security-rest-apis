@@ -29,7 +29,7 @@ public class GoalController {
 		this.users = users;
 	}
 
-	@CrossOrigin(allowCredentials = "true")
+	@CrossOrigin
 	@GetMapping("/goals")
 	@PreAuthorize("hasAuthority('goal:read')")
 	@PostFilter("@post.filter(#root)")
