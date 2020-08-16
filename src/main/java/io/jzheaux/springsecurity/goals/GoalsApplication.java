@@ -1,6 +1,5 @@
 package io.jzheaux.springsecurity.goals;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -18,9 +17,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class GoalsApplication extends WebSecurityConfigurerAdapter {
 
-	@Autowired
-	UserRepositoryJwtAuthenticationConverter authenticationConverter;
-
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests(authz -> authz
@@ -28,9 +24,7 @@ public class GoalsApplication extends WebSecurityConfigurerAdapter {
 			)
 			.httpBasic(withDefaults())
 			.oauth2ResourceServer(oauth2 -> oauth2
-				.jwt(jwt -> jwt
-					.jwtAuthenticationConverter(this.authenticationConverter)
-				)
+				.opaqueToken(withDefaults())
 			)
 			.cors(withDefaults());
 	}
