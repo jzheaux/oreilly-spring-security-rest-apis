@@ -22,9 +22,9 @@ import java.util.UUID;
 @RestController
 public class GoalController {
 	private final GoalRepository goals;
-	private final UserRepository users;
+	private final UserService users;
 
-	public GoalController(GoalRepository goals, UserRepository users) {
+	public GoalController(GoalRepository goals, UserService users) {
 		this.goals = goals;
 		this.users = users;
 	}
@@ -40,8 +40,8 @@ public class GoalController {
 				(new SimpleGrantedAuthority("user:read"));
 		if (hasUserRead) {
 			for (Goal goal : goals) {
-				String name = this.users.findByUsername(goal.getOwner())
-						.map(User::getFullName).orElse("none");
+				String name = this.users.getFullName(goal.getOwner())
+						.orElse("none");
 				goal.setText(goal.getText() + ", by " + name);
 			}
 		}
