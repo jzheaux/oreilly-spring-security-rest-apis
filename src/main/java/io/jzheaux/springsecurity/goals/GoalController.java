@@ -1,5 +1,6 @@
 package io.jzheaux.springsecurity.goals;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -8,7 +9,10 @@ import javax.transaction.Transactional;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,8 +35,12 @@ public class GoalController {
 	@PostFilter("@post.filter(#root)")
 	public Iterable<Goal> read() {
 		Iterable<Goal> goals = this.goals.findAll();
-		for (Goal goal : goals) {
-			addName(goal);
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Collection<String> scopes = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
+		if (scopes.contains("user:read")) {
+			for (Goal goal : goals) {
+				addName(goal);
+			}
 		}
 		return goals;
 	}
