@@ -35,6 +35,10 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 			Collection<GrantedAuthority> authorities = new ArrayList<>();
 			for (UserAuthority userAuthority : this.userAuthorities) {
 				authorities.add(new SimpleGrantedAuthority(userAuthority.authority));
+				if ("ROLE_ADMIN".equals(userAuthority.authority)) {
+					authorities.add(new SimpleGrantedAuthority("goal:read"));
+					authorities.add(new SimpleGrantedAuthority("goal:write"));
+				}
 			}
 			return authorities;
 		}
