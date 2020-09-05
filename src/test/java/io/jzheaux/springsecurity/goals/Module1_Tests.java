@@ -209,51 +209,107 @@ public class Module1_Tests {
 				result.getResponse().getStatus(), 200);
 	}
 
+
 	@Test
 	public void task_3() throws Exception {
+		_task_12();
+
+		String failureMessage = assertUserDetailsService(UserRepositoryUserDetailsService.class);
+		if (failureMessage != null) {
+			fail("Task 3: " + failureMessage);
+		}
+
+		UserDetails user = this.userDetailsService.loadUserByUsername("user");
+
+		assertTrue(
+				"Task 3: The object returned from a custom `UserDetailsService` should be castable to your custom " +
+						"`User` type.",
+				User.class.isAssignableFrom(user.getClass()));
+
+		assertTrue(
+				"Task 3: The object returned from a custom `UserDetailsService` must be castable to `UserDetails`",
+				UserDetails.class.isAssignableFrom(user.getClass()));
+
+		MvcResult result = this.mvc.perform(get("/goals")
+				.with(httpBasic("user", "password")))
+				.andReturn();
+
+		assertEquals(
+				"Task 3: The `/goals` response failed to authorize `user`/`password` as the username and password. " +
+						"Make sure that your custom `UserDetailsService` is wired with a password of `password`.",
+				result.getResponse().getStatus(), 200);
+	}
+
+	@Test
+	public void task_4() throws Exception {
+		task_3();
+
+		Authentication haswrite = token("haswrite");
+		Method make = method(GoalController.class, "make", String.class, String.class);
+		assertNotNull(
+				"Task 4: Please add the current logged-in user's `username` as a method parameter, including the `@CurrentSecurityContext` annotation." +
+						" While technically any method parameter can " +
+						"contain user information, this test expects it to be the first parameter",
+				make);
+		SecurityContextHolder.getContext().setAuthentication(haswrite);
+		try {
+			ReflectedUser haswriteUser = new ReflectedUser((User) haswrite.getPrincipal());
+			Goal goal =
+					(Goal) make.invoke(this.goalController, haswriteUser.getUsername(), "my goal");
+			assertEquals(
+					"Task 4: When making a goal, the user attached to the goal does not match the logged in user. " +
+							"Make sure you are passing the id of the currently logged-in user to `GoalRepository`",
+					goal.getOwner(), haswriteUser.getUsername());
+		} catch (Exception e) {
+			fail(
+					"Task 4: `GoalController#make threw an exception: " + e);
+		} finally {
+			SecurityContextHolder.clearContext();
+		}
+	}
+
+	private void _task_3() throws Exception {
 		// create User
 		task_1();
 		Entity userEntity = User.class.getAnnotation(Entity.class);
 
 		assertTrue(
-				"Task 3: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
+				"Task x: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
 						"the Users class needs to be annotated with `@javax.persistence.Entity(name=\"users\")` since that's the table name that the " +
 						"manager expects",
 				userEntity != null && "users".equals(userEntity.name()));
 
 		assertNotNull(
-				"Task 3: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
+				"Task x: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
 						"the `Users` class needs a JPA field mapped to the `username` column.",
 				ReflectedUser.usernameColumnField);
 
 		assertNotNull(
-				"Task 3: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
+				"Task x: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
 						"the `Users` class needs a JPA field mapped to the `password` column.",
 				ReflectedUser.passwordColumnField);
 
 		assertNotNull(
-				"Task 3: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
+				"Task x: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
 						"the `Users` class needs a JPA field mapped to the `enabled` column.",
 				ReflectedUser.enabledColumnField);
 	}
 
-	@Test
-	public void task_4() throws Exception {
+	private void _task_4() throws Exception {
 		// create UserRepository
-		task_3(); // check that everything from Task 3 still holds
+		task_1();
 		assertNotNull(
-				"Task 4: Make sure that your `UserRepository` is annotated with " + Repository.class,
+				"Task x: Make sure that your `UserRepository` is annotated with " + Repository.class,
 				UserRepository.class.getAnnotation(Repository.class));
 
 		assertNotNull(
-				"Task 4: Make sure that your `UserRepository` is extending `CrudRepository<User,UUID>`",
+				"Task x: Make sure that your `UserRepository` is extending `CrudRepository<User,UUID>`",
 				this.users);
 	}
 
-	@Test
-	public void task_5() throws Exception {
+	private void _task_5() throws Exception {
 		// add users to database
-		task_4(); // make sure everything from task_4 still holds
+		_task_4(); // make sure everything from task_4 still holds
 		Iterable<User> users = this.users.findAll();
 		Map<String, ReflectedUser> usersByUsername = StreamSupport.stream(users.spliterator(), false)
 				.map(ReflectedUser::new)
@@ -261,28 +317,27 @@ public class Module1_Tests {
 
 		ReflectedUser user = usersByUsername.get("user");
 		assertNotNull(
-				"Task 5: To ensure that future tests work, make sure that that `UserRepository` has at least a user " +
+				"Task x: To ensure that future tests work, make sure that that `UserRepository` has at least a user " +
 						"whose username is `user`",
 				user);
 
 		String storedPassword = user.getPassword();
 		assertNotEquals(
-				"Task 5: Make sure that the password you add to the database is encoded",
+				"Task x: Make sure that the password you add to the database is encoded",
 				"password", storedPassword);
 		PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 		assertTrue(
-				"Task 5: Make sure that you are using the default password encoder to encode the user's password " +
+				"Task x: Make sure that you are using the default password encoder to encode the user's password " +
 						"before persisting. The default password encoder is `PasswordEncoderFactories.createDelegatingPasswordEncoder`",
 				encoder.matches("password", storedPassword));
 	}
 
-	@Test
-	public void task_6() throws Exception {
+	private void _task_6() throws Exception {
 		// publish JdbcUserDetailsManager
-		task_5();
+		_task_5();
 		String failureMessage = assertUserDetailsService(JdbcUserDetailsManager.class);
 		if (failureMessage != null) {
-			fail("Task 6: " + failureMessage);
+			fail("Task x: " + failureMessage);
 		}
 
 		MvcResult result = this.mvc.perform(get("/goals")
@@ -290,52 +345,51 @@ public class Module1_Tests {
 				.andReturn();
 
 		assertEquals(
-				"Task 6: The `/goals` endpoint failed to authorize user/password as the username and password. " +
+				"Task x: The `/goals` endpoint failed to authorize user/password as the username and password. " +
 						"Make sure that you're adding the appropriate roles to the user -- since we haven't added authority yet, " +
 						"they should be added manually when constructing the `JdbcUserDetailsManager`.",
 				result.getResponse().getStatus(), 200);
 	}
 
-	@Test
-	public void task_7() throws Exception {
+	private void _task_7() throws Exception {
 		// add UserAuthority
-		task_6();
+		_task_5();
 		Entity authorityEntity = UserAuthority.class.getAnnotation(Entity.class);
 
 		assertTrue(
-				"Task 7: Since you are using `JdbcUserDetailsManager` to retrieve users, " +
+				"Task x: Since you are using `JdbcUserDetailsManager` to retrieve users, " +
 						"the `UserAuthority` class needs to be annotated with `@Entity(name=\"authorities\")` since " +
 						"that's the table name that the manager expects by default",
 				authorityEntity != null && "authorities".equals(authorityEntity.name()));
 
 		assertNotNull(
-				"Task 7: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
+				"Task x: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
 						"the `UserAuthority` class needs a JPA field mapped to the `authority` column.",
 				ReflectedUserAuthority.authorityColumnField);
 
 		assertNotNull(
-				"Task 7: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
+				"Task x: Since you are going to be using `JdbcUserDetailsManager` to retrieve users in an upcoming step, " +
 						"the `UserAuthority` class needs a `username` column. JPA can do this with the `@JoinColumn` annotation on a " +
 						"field of type `User`.",
 				ReflectedUserAuthority.usernameColumnField);
 
 		assertEquals(
-				"Task 7: Let's please keep the `User` field and the JPA field for the `username` column the same." +
+				"Task x: Let's please keep the `User` field and the JPA field for the `username` column the same." +
 						"This can be done by introducing a field of ype `User` that uses a `@ManyToOne` annotation and a `@JoinColumn` annotation " +
 						"specifying a `name` and `referencedColumnName` of `username`.",
 				ReflectedUserAuthority.userField, ReflectedUserAuthority.usernameColumnField);
 
 		assertNotNull(
-				"Task 7: Make sure that the `User` field is annotated with `@ManyToOne`",
+				"Task x: Make sure that the `User` field is annotated with `@ManyToOne`",
 				ReflectedUserAuthority.userField.getAnnotation(ManyToOne.class));
 
 		assertNotNull(
-				"Task 7: Make sure that you've updated `User` to declare its bi-directional relationship to `UserAuthority`. " +
+				"Task x: Make sure that you've updated `User` to declare its bi-directional relationship to `UserAuthority`. " +
 						"There should be a field annotated with `@OneToMany` with a collection of type `UserAuthority`.",
 				ReflectedUser.userAuthorityCollectionField);
 
 		assertNotNull(
-				"Task 7: Make sure to add a `grantAuthority` method to `User`",
+				"Task x: Make sure to add a `grantAuthority` method to `User`",
 				ReflectedUser.grantAuthorityMethod);
 
 		String authority = UUID.randomUUID().toString();
@@ -343,13 +397,13 @@ public class Module1_Tests {
 		try {
 			user.grantAuthority(authority);
 		} catch (Exception e) {
-			fail("Task 7: Tried to grant an authority, but experienced an error: " + e);
+			fail("Task x: Tried to grant an authority, but experienced an error: " + e);
 		}
 
 		try {
 			Collection<UserAuthority> authorities = user.getUserAuthorities();
 			assertTrue(
-					"Task 7: After granting an authority, the authorities list is still empty. Make sure you are adding " +
+					"Task x: After granting an authority, the authorities list is still empty. Make sure you are adding " +
 							"an authority to your `User`'s authority list when `grantAuthority` is called.",
 					authorities.size() > 0);
 
@@ -358,7 +412,7 @@ public class Module1_Tests {
 					.filter(a -> authority.equals(a.getAuthority()))
 					.findFirst();
 			assertTrue(
-					"Task 7: After granting an authority, the authorities list does not have a matching `UserAuthority`" +
+					"Task x: After granting an authority, the authorities list does not have a matching `UserAuthority`" +
 							". Make sure you are setting the authority's value to be what is passed in to " +
 							"`grantAuthority`",
 					hasRoleUser.isPresent());
@@ -366,126 +420,66 @@ public class Module1_Tests {
 			ReflectedUserAuthority userAuthority = hasRoleUser.get();
 			ReflectedUser userFromUserAuthority = new ReflectedUser(userAuthority.getUser());
 			assertEquals(
-					"Task 7: Make sure that the `User` stored in `UserAuthority` matches the `User` instance on which " +
+					"Task x: Make sure that the `User` stored in `UserAuthority` matches the `User` instance on which " +
 							"`grantAuthority` was called.",
 					user.user, userFromUserAuthority.user);
 		} catch (Exception e) {
 			fail(
-					"Task 7: Make sure that the authorities property in `User` is called `userAuthorities`. While not strictly " +
+					"Task x: Make sure that the authorities property in `User` is called `userAuthorities`. While not strictly " +
 							"necessary, with simplify future steps.");
 		}
 	}
 
-	@Test
-	public void task_8() throws Exception {
-		task_7();
+	private void _task_8() throws Exception {
+		_task_7();
 		// add additional users with authorities
 
 		try {
 			UserDetails userDetails = this.userDetailsService.loadUserByUsername("hasread");
 			Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
 			assertTrue(
-					"Task 8: Make sure the `hasread` user has the `goal:read` authority",
+					"Task x: Make sure the `hasread` user has the `goal:read` authority",
 					authorities.contains(new SimpleGrantedAuthority("goal:read")));
 			assertFalse(
-					"Task 8: Make sure the `hasread` user doesn't not have the `goal:write` authority",
+					"Task x: Make sure the `hasread` user doesn't not have the `goal:write` authority",
 					authorities.contains(new SimpleGrantedAuthority("goal:write")));
 		} catch (UsernameNotFoundException e) {
 			fail(
-					"Task 8: Make sure to add a user `hasread` with an encoded password of `password`");
+					"Task x: Make sure to add a user `hasread` with an encoded password of `password`");
 		}
 
 		try {
 			UserDetails userDetails = this.userDetailsService.loadUserByUsername("haswrite");
 			Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
 			assertTrue(
-					"Task 8: Make sure the `haswrite` user has the `goal:write` authority",
+					"Task x: Make sure the `haswrite` user has the `goal:write` authority",
 					authorities.contains(new SimpleGrantedAuthority("goal:write")));
 			assertFalse(
-					"Task 8: Make sure the `haswrite` user doesn't not have the `goal:read` authority",
+					"Task x: Make sure the `haswrite` user doesn't not have the `goal:read` authority",
 					authorities.contains(new SimpleGrantedAuthority("goal:read")));
 		} catch (UsernameNotFoundException e) {
 			fail(
-					"Task 8: Make sure to add a user `haswrite` with an encoded password of `password`");
+					"Task x: Make sure to add a user `haswrite` with an encoded password of `password`");
 		}
 	}
 
-	@Test
-	public void task_9() throws Exception {
-		// add simple authorization
-		task_8();
-
-		MvcResult result = this.mvc.perform(get("/goals")
-				.with(httpBasic("hasread", "password")))
-				.andReturn();
-
-		assertNotEquals(
-				"Task 9: Authentication failed for user `hasread`. Make sure that the password is " +
-				"set to 'password'.",
-				401, result.getResponse().getStatus());
-
-		assertNotEquals(
-				"Task 9: Authorization failed for user `hasread`, which has the 'goal:read' permission. Please " +
-				"check your security configuration to make sure that `/goals` is only requiring the 'goal:read' permission.",
-				403, result.getResponse().getStatus());
-
-		assertEquals(
-				"Task 9: `/goals` endpoint responded with " + result.getResponse().getStatus() + " " +
-				"instead of the expected 200",
-				200, result.getResponse().getStatus());
-
-		result = this.mvc.perform(post("/goal")
-				.content("my goal")
-				.with(csrf())
-				.with(httpBasic("hasread", "password")))
-				.andReturn();
-
-		assertEquals(
-				"Task 9: The `/goal` POST endpoint allowed `hasread` even though it only was " +
-						"granted 'goal:read'. Please check your security configuration to make sure that `/goal` POST is " +
-						"requiring the 'goal:write' permission",
-				403, result.getResponse().getStatus());
-
-		result = this.mvc.perform(post("/goal")
-				.content("my goal")
-				.with(csrf())
-				.with(httpBasic("haswrite", "password")))
-				.andReturn();
-
-		assertNotEquals(
-				"Task 9: Authentication failed for user `haswrite`. Make sure that the password is " +
-				"set to 'password'.",
-				401, result.getResponse().getStatus());
-
-		assertNotEquals(
-				"Task 9: Authorization failed for user `haswrite`, which has the 'goal:write' permission. Please " +
-				"check your security configuration to make sure that `/goal` POST is only requiring the 'goal:write' permission.",
-				403, result.getResponse().getStatus());
-
-		assertEquals(
-				"Task 9: The `/goal` POST endpoint responded with " + result.getResponse().getStatus() + " " +
-				"instead of the expected 200",
-				200, result.getResponse().getStatus());
-	}
-
-	@Test
-	public void task_10() throws Exception {
+	private void _task_10() throws Exception {
 		// add User copy constructor
-		task_9();
+		_task_7();
 		assertNotNull(
-				"Task 10: Couldn't find a copy constructor in `User` class.",
+				"Task x: Couldn't find a copy constructor in `User` class.",
 				ReflectedUser.copyConstructor);
 
 		ReflectedUser user = new ReflectedUser(this.users.findAll().iterator().next());
 		try {
 			ReflectedUser copy = ReflectedUser.copiedInstance(user);
 			assertEquals(
-					"Task 10: The usernames of the original and its copy are different.",
+					"Task x: The usernames of the original and its copy are different.",
 					user.getUsername(),
 					copy.getUsername());
 
 			assertEquals(
-					"Task 10: The passwords of the original and its copy are different.",
+					"Task x: The passwords of the original and its copy are different.",
 					user.getPassword(),
 					copy.getPassword());
 
@@ -496,18 +490,17 @@ public class Module1_Tests {
 					.map(ua -> new ReflectedUserAuthority(ua).getAuthority())
 					.collect(Collectors.toList());
 			assertEquals(
-					"Task 10: The authorities of the original and its copy are different.",
+					"Task x: The authorities of the original and its copy are different.",
 					userAuthorities,
 					copyAuthorities);
 		} catch (Exception e) {
-			fail("Task 10: `User`'s copy constructor threw an exception: " + e);
+			fail("Task x: `User`'s copy constructor threw an exception: " + e);
 		}
 	}
 
-	@Test
-	public void task_11() throws Exception {
+	private void _task_11() throws Exception {
 		// add custom UserDetailsService
-		task_1();
+		_task_10();
 
 		UserDetailsService userDetailsService = null;
 		if (this.userDetailsService instanceof UserRepositoryUserDetailsService) {
@@ -526,115 +519,28 @@ public class Module1_Tests {
 		}
 
 		assertNotNull(
-				"Task 11: Could not construct an instance of type `UserRepositoryUserDetailsService`. " +
+				"Task 3: Could not construct an instance of type `UserRepositoryUserDetailsService`. " +
 						"Make sure that it either has a default constructor or one that takes as `UserRepository` instance",
 				userDetailsService);
 
 		try {
 			userDetailsService.loadUserByUsername(UUID.randomUUID().toString());
-			fail("Task 11: Make sure your custom `UserDetailsService` throws a `UsernameNotFoundException` when it can't find a user" );
+			fail("Task 3: Make sure your custom `UserDetailsService` throws a `UsernameNotFoundException` when it can't find a user" );
 		} catch (UsernameNotFoundException expected) {
 			// ignoring
 		} catch (Exception e) {
-			fail("Task 11: Make sure your custom `UserDetailsService` throws a `UsernameNotFoundException` when it can't find a user" );
+			fail("Task 3: Make sure your custom `UserDetailsService` throws a `UsernameNotFoundException` when it can't find a user" );
 		}
 	}
 
-	@Test
-	public void task_12() throws Exception {
-		task_11();
+	private void _task_12() throws Exception {
+		_task_11();
 
 		Field userRepositoryField = getDeclaredFieldByType(UserRepositoryUserDetailsService.class, UserRepository.class);
 		assertNotNull(
-				"Task 12: For this exercise make sure that your custom `UserDetailsService` implementation is delegating to " +
+				"Task 3: For this exercise make sure that your custom `UserDetailsService` implementation is delegating to " +
 						"a `UserRepository` instance",
 				userRepositoryField);
-	}
-
-	@Test
-	public void task_13() throws Exception {
-		task_12();
-
-		String failureMessage = assertUserDetailsService(UserRepositoryUserDetailsService.class);
-		if (failureMessage != null) {
-			fail("Task 13: " + failureMessage);
-		}
-
-		UserDetails user = this.userDetailsService.loadUserByUsername("user");
-
-		assertTrue(
-				"Task 13: The object returned from a custom `UserDetailsService` should be castable to your custom " +
-						"`User` type.",
-				User.class.isAssignableFrom(user.getClass()));
-
-		assertTrue(
-				"Task 13: The object returned from a custom `UserDetailsService` must be castable to `UserDetails`",
-				UserDetails.class.isAssignableFrom(user.getClass()));
-
-		MvcResult result = this.mvc.perform(get("/goals")
-				.with(httpBasic("user", "password")))
-				.andReturn();
-
-		assertEquals(
-				"Task 13: The `/goals` response failed to authorize `user`/`password` as the username and password. " +
-						"Make sure that your custom `UserDetailsService` is wired with a password of `password`.",
-				result.getResponse().getStatus(), 200);
-
-		result = this.mvc.perform(get("/goals")
-				.with(httpBasic("haswrite", "password")))
-				.andReturn();
-
-		assertEquals(
-				"Task 13: The `/goals` endpoint authorized `haswrite`/`password` even though it does not have the `goal:read` permission.",
-				result.getResponse().getStatus(), 403);
-
-		result = this.mvc.perform(post("/goal")
-				.content("my goal")
-				.with(csrf())
-				.with(httpBasic("hasread", "password")))
-				.andReturn();
-
-		assertEquals(
-				"Task 13: The `/goal` `POST` endpoint authorized `hasread`/`password` even though `hasread` only has the `goal:read` permission.",
-				result.getResponse().getStatus(), 403);
-
-		result = this.mvc.perform(post("/goal")
-				.content("my goal")
-				.with(csrf())
-				.with(httpBasic("haswrite", "password")))
-				.andReturn();
-
-		assertEquals(
-				"Task 13: The `/goal` `POST` response failed to authorize `haswrite`/`password` even though `haswrite` has the `goal:write` password.",
-				result.getResponse().getStatus(), 200);
-	}
-
-	@Test
-	public void task_14() throws Exception {
-		task_13();
-
-		Authentication haswrite = token("haswrite");
-		Method make = method(GoalController.class, "make", String.class, String.class);
-		assertNotNull(
-				"Task 14: Please add the current logged-in user's `username` as a method parameter, including the `@CurrentUsername` annotation." +
-						" While technically any method parameter can " +
-						"contain user information, this test expects it to be the first parameter",
-				make);
-		SecurityContextHolder.getContext().setAuthentication(haswrite);
-		try {
-			ReflectedUser haswriteUser = new ReflectedUser((User) haswrite.getPrincipal());
-			Goal goal =
-					(Goal) make.invoke(this.goalController, haswriteUser.getUsername(), "my goal");
-			assertEquals(
-					"Task 14: When making a goal, the user attached to the goal does not match the logged in user. " +
-							"Make sure you are passing the id of the currently logged-in user to `GoalRepository`",
-					goal.getOwner(), haswriteUser.getUsername());
-		} catch (Exception e) {
-			fail(
-					"Task 14: `GoalController#make threw an exception: " + e);
-		} finally {
-			SecurityContextHolder.clearContext();
-		}
 	}
 
 	private enum UserDetailsServiceVerifier {
