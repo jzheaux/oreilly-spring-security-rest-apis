@@ -183,11 +183,308 @@ public class Module2_Tests {
 		this.haswriteGoal = this.repository.save(new Goal("has write test", "haswrite"));
 	}
 
+	@Test
+	public void task_1() throws Exception {
+		_task_1();
+
+		Method readMethod = GoalController.class.getDeclaredMethod("read");
+		PreAuthorize readPreAuthorize = readMethod.getAnnotation(PreAuthorize.class);
+		assertNotNull(
+				"Task 1: Please add the `@PreAuthorize` annotation to the `GoalController#read()` method.",
+				readPreAuthorize);
+
+		AccessDeniedException e = tryAuthorized(this.controller::read, this.hasread);
+		if (e != null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#read()` evaluated to `false` when it was " +
+					"given a user with a `goal:read` permission. Double check your expression; it " +
+					"should look something like `@PreAuthorize(\"hasAuthority('goal:read')\")`");
+		}
+
+		e = tryAuthorized(this.controller::read, this.haswrite);
+		if (e == null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#read()` evaluated to `true` when it was " +
+					"given a user without a `goal:read` permission. Double check your expression; it " +
+					"should look something like `@PreAuthorize(\"hasAuthority('goal:read')\")`" );
+		}
+
+		MvcResult result = this.mvc.perform(get("/goals")
+			.with(httpBasic("hasread", "password")))
+			.andReturn();
+
+		assertNotEquals(
+				"Task 1: The `/goals` endpoint failed to authenticate with `hasread`/`password`. " +
+						"Make sure this username/password is added via your `UserRepository` on startup.",
+				401, result.getResponse().getStatus());
+
+		assertNotEquals(
+				"Task 1: The `/goals` endpoint failed to authorize `hasread`/`password`. " +
+						"Make sure this username/password is granted the `goal:read` authority",
+				403, result.getResponse().getStatus());
+
+		assertEquals(
+				"Task 1: The `/goals` endpoint failed with a status code of " +
+						result.getResponse().getStatus(),
+				200, result.getResponse().getStatus());
+
+		Method makeMethod = GoalController.class.getDeclaredMethod("make", String.class, String.class);
+		PreAuthorize makePreAuthorize = makeMethod.getAnnotation(PreAuthorize.class);
+		assertNotNull(
+				"Task 1: Please add the `@PreAuthorize` annotation to the `GoalController#make` method.",
+				makePreAuthorize);
+
+		e = tryAuthorized(() -> make("goal", this.haswrite), this.haswrite);
+		if (e != null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#make` evaluated to `false` when it was " +
+					"given a user with a `goal:write` permission. Double check your expression; it " +
+					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`");
+		}
+
+		e = tryAuthorized(() -> make("goal", this.hasread), this.hasread);
+		if (e == null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#make` evaluated to `true` when it was " +
+					"given a user without a `goal:write` permission. Double check your expression; it " +
+					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`" );
+		}
+
+		readMethod = GoalController.class.getDeclaredMethod("read", UUID.class);
+		readPreAuthorize = readMethod.getAnnotation(PreAuthorize.class);
+		assertNotNull(
+				"Task 1: Please add the `@PreAuthorize` annotation to the `GoalController#read(UUID)` method.",
+				readPreAuthorize);
+
+		e = tryAuthorized(() -> this.controller.read(this.hasreadGoal.getId()), this.hasread);
+		if (e != null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#read(UUID)` evaluated to `false` when it was " +
+					"given a user with a `goal:read` permission. Double check your expression; it " +
+					"should look like `@PreAuthorize(\"hasAuthority('goal:read')\")`");
+		}
+
+		e = tryAuthorized(() -> this.controller.read(this.haswriteGoal.getId()), this.haswrite);
+		if (e == null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#read(UUID)` evaluated to `true` when it was " +
+					"given a user without a `goal:read` permission. Double check your expression; it " +
+					"should look like `@PreAuthorize(\"hasAuthority('goal:read')\")`" );
+		}
+
+		Method reviseMethod = GoalController.class.getDeclaredMethod("revise", UUID.class, String.class);
+		PreAuthorize revisePreAuthorize = reviseMethod.getAnnotation(PreAuthorize.class);
+		assertNotNull(
+				"Task 1: Please add the `@PreAuthorize` annotation to the `GoalController#revise(UUID, String)` method.",
+				revisePreAuthorize);
+
+		e = tryAuthorized(() -> this.controller.revise(this.haswriteGoal.getId(), "new text"), this.haswrite);
+		if (e != null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#revise(UUID, String)` evaluated to `false` when it was " +
+					"given a user with a `goal:write` permission. Double check your expression; it " +
+					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`");
+		}
+
+		e = tryAuthorized(() -> this.controller.revise(this.hasreadGoal.getId(), "new text"), this.hasread);
+		if (e == null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#revise(UUID, String)` evaluated to `true` when it was " +
+					"given a user without a `goal:write` permission. Double check your expression; it " +
+					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`" );
+		}
+
+		Method completeMethod = GoalController.class.getDeclaredMethod("complete", UUID.class);
+		PreAuthorize completePreAuthorize = completeMethod.getAnnotation(PreAuthorize.class);
+		assertNotNull(
+				"Task 1: Please add the `@PreAuthorize` annotation to the `GoalController#complete(UUID, String)` method.",
+				completePreAuthorize);
+
+		e = tryAuthorized(() -> this.controller.complete(this.haswriteGoal.getId()), this.haswrite);
+		if (e != null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#complete(UUID, String)` evaluated to `false` when it was " +
+					"given a user with a `goal:write` permission. Double check your expression; it " +
+					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`");
+		}
+
+		e = tryAuthorized(() -> this.controller.complete(this.hasreadGoal.getId()), this.hasread);
+		if (e == null) {
+			fail("Task 1: Your `@PreAuthorize` annotation for `GoalController#complete(UUID, String)` evaluated to `true` when it was " +
+					"given a user without a `goal:write` permission. Double check your expression; it " +
+					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`" );
+		}
+	}
+
+	@Test
+	public void task_2() throws Exception {
+		// use @PostAuthorize
+		task_1();
+		Method readMethod = GoalController.class.getDeclaredMethod("read", UUID.class);
+		PostAuthorize readPostAuthorize = readMethod.getAnnotation(PostAuthorize.class);
+		assertNotNull(
+				"Task 2: Please add the `@PostAuthorize` annotation to the `GoalController#read(UUID)` method.",
+				readPostAuthorize);
+
+		AccessDeniedException e = tryAuthorized(() -> this.controller.read(this.hasreadGoal.getId()), this.hasread);
+		if (e != null) {
+			fail("Task 2: The `/goal/{id}` endpoint failed to authorize the `hasread` user to read a goal " +
+					"that belonged to them. Please double-check your `@PostAuthorize` expression.");
+		}
+
+		e = tryAuthorized(() -> this.controller.read(this.haswriteGoal.getId()), this.hasread);
+		if (e == null) {
+			fail("Task 2: The `/goal/{id}` endpoint authorized the `hasread` user to read a goal " +
+					"that didn't belonged to them. Please double-check your `@PostAuthorize` expression.");
+		}
+
+		MvcResult result = this.mvc.perform(get("/goal/" + this.hasreadGoal.getId())
+				.with(httpBasic("hasread", "password")))
+				.andReturn();
+
+		assertNotEquals(
+				"Task 2: The `/goal/{id}` endpoint failed to authenticate with `hasread`/`password`. " +
+						"Make sure this username/password is added via your `UserRepository` on startup.",
+				401, result.getResponse().getStatus());
+
+		assertNotEquals(
+				"Task 2: The `/goal/{id}` endpoint failed to authorize `hasread`/`password`. " +
+						"Make sure this username/password is granted the `goal:read` authority.",
+				403, result.getResponse().getStatus());
+
+		assertEquals(
+				"Task 2: The `/goal/{id}` endpoint failed with a status code of " +
+						result.getResponse().getStatus(),
+				200, result.getResponse().getStatus());
+
+		Method reviseMethod = GoalController.class.getDeclaredMethod("revise", UUID.class, String.class);
+		PostAuthorize revisePostAuthorize = reviseMethod.getAnnotation(PostAuthorize.class);
+		assertNotNull(
+				"Task 2: Please add the `@PostAuthorize` annotation to the `GoalController#revise` method",
+				revisePostAuthorize);
+
+		Method completeMethod = GoalController.class.getDeclaredMethod("complete", UUID.class);
+		PostAuthorize completePostAuthorize = completeMethod.getAnnotation(PostAuthorize.class);
+		assertNotNull(
+				"Task 2: Please add the `@PostAuthorize` annotation to the `GoalController#revise` method",
+				completePostAuthorize);
+	}
+
+	@Test
+	public void task_3() throws Exception {
+		_task_4();
+
+		Method reviseMethod = GoalRepository.class.getDeclaredMethod("revise", UUID.class, String.class);
+		Query reviseQuery = reviseMethod.getAnnotation(Query.class);
+		assertNotNull(
+				"Task 3: Please restore the `@Query` annotation to the `GoalRepository#revise(UUID, String)` method",
+				reviseQuery);
+
+		assertTrue(
+				"Task 3: Use the `?#{authentication.name}` expression to change the query and ensure that no update is performed unless the " +
+						"goal belongs to the logged-in user",
+				reviseQuery.value().contains("?#{authentication"));
+
+		AccessDeniedException e = tryAuthorized(
+				() -> this.controller.revise(this.haswriteGoal.getId(), "has write test revised"), this.haswrite);
+		if (e != null) {
+			fail("Task 3: The `/goal/{id}/revise` endpoint failed to authorize the `haswrite` user to revise a goal " +
+					"that belonged to them. Please double-check your `@PostAuthorize` expression");
+		} else {
+			assertTrue(
+					"Task 3: The `/goal/{id}/revise` endpoint failed to revise a goal that belonged to `haswrite`. " +
+							"Please double-check your `@Query` expression",
+					this.repository.findById(this.haswriteGoal.getId())
+							.filter(goal -> goal.getText().equals("has write test revised"))
+							.isPresent());
+		}
+
+		e = tryAuthorized(
+				() -> this.controller.revise(this.hasreadGoal.getId(), "has read test revised"), this.haswrite);
+		if (e == null) {
+			fail("Task 3: The `/goal/{id}/revise` endpoint authorized the `haswrite` user to revise a goal " +
+					"that didn't belonged to them. Please double-check your `@PostAuthorize` expression" );
+		} else {
+			assertFalse(
+					"Task 3: The `/goal/{id}/revise` endpoint allowed `haswrite` to revise a goal that didn't belong to them. " +
+							"Please double-check your `@Query` expression",
+					this.repository.findById(this.hasreadGoal.getId())
+							.filter(goal -> goal.getText().equals("has read test revised"))
+							.isPresent());
+		}
+
+		Method completeMethod = GoalRepository.class.getDeclaredMethod("complete", UUID.class);
+		Query completeQuery = completeMethod.getAnnotation(Query.class);
+		assertNotNull(
+				"Task 3: Please restore the `@Query` annotation to the `GoalRepository#revise(UUID, String)` method",
+				completeQuery);
+
+		assertTrue(
+				"Task 3: Use the `?#{authentication.name}` expression to change the query and ensure that no update is performed unless the " +
+						"goal belongs to the logged-in user",
+				completeQuery.value().contains("?#{authentication"));
+
+		e = tryAuthorized(
+				() -> this.controller.complete(this.haswriteGoal.getId()), this.haswrite);
+		if (e != null) {
+			fail("Task 3: The `/goal/{id}/complete` endpoint failed to authorize the `haswrite` user to revise a goal " +
+					"that belonged to them. Please double-check your `@PostAuthorize` expression");
+		} else {
+			assertTrue(
+					"Task 3: The `/goal/{id}/complete` endpoint failed to revise a goal that belonged to `haswrite`. " +
+							"Please double-check your `@Query` expression",
+					this.repository.findById(this.haswriteGoal.getId())
+							.filter(Goal::getCompleted)
+							.isPresent());
+		}
+
+		e = tryAuthorized(
+				() -> this.controller.complete(this.hasreadGoal.getId()), this.haswrite);
+		if (e == null) {
+			fail("Task 3: The `/goal/{id}/complete` endpoint authorized the `haswrite` user to revise a goal " +
+					"that didn't belonged to them. Please double-check your `@PostAuthorize` expression" );
+		} else {
+			assertFalse(
+					"Task 3: The `/goal/{id}/complete` endpoint allowed `haswrite` to revise a goal that didn't belong to them. " +
+							"Please double-check your `@Query` expression",
+					this.repository.findById(this.hasreadGoal.getId())
+							.filter(Goal::getCompleted)
+							.isPresent());
+		}
+	}
+
+	@Test
+	public void task_4() throws Exception {
+		_task_7();
+
+		UserDetails admin = this.userDetailsService.loadUserByUsername("admin");
+		List<String> grantedAuthorities = admin.getAuthorities().stream()
+				.map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+		Optional<User> user = this.users.findById(new ReflectedUser((User) admin).getId());
+		List<String> userAuthorities = user
+				.map(ReflectedUser::new)
+				.map(ReflectedUser::getUserAuthorities)
+				.orElse(Collections.emptyList()).stream()
+				.map(ReflectedUserAuthority::new)
+				.map(ReflectedUserAuthority::getAuthority)
+				.collect(Collectors.toList());
+
+		assertFalse(
+				"Task 4: Please remove the `goal:read` and `goal:write` authority from the admin user in the database. " +
+						"Add them via your `UserRepositoryUserDetailsService` instead",
+				userAuthorities.contains("goal:read") || userAuthorities.contains("goal:write"));
+		assertTrue(
+				"Task 4: Please make sure the admin still has the `ROLE_ADMIN` authority in the database",
+				userAuthorities.contains("ROLE_ADMIN"));
+
+		assertTrue(
+				"Task 4: After calling your `UserDetailsService`, the admin user is still missing the `goal:read` authority",
+				grantedAuthorities.contains("goal:read"));
+
+		assertTrue(
+				"Task 4: After calling your `UserDetailsService`, the admin user is still missing the `goal:write` authority",
+				grantedAuthorities.contains("goal:write"));
+
+		assertTrue(
+				"Task 4: After calling your `UserDetailsService`, the admin user is still missing the `ROLE_ADMIN` authority",
+				grantedAuthorities.contains("ROLE_ADMIN"));
+	}
+
 	/**
 	 * Add the appropriate Spring Boot starter dependency
 	 */
-	@Test
-	public void task_1() throws Exception {
+	private void _task_1() throws Exception {
 		// use @PreAuthorize
 		assertNotNull(
 				"Task 1: Method Security appears to not be turned on yet. Please make sure that " +
@@ -214,194 +511,26 @@ public class Module2_Tests {
 		}
 	}
 
-	@Test
-	public void task_2() throws Exception {
-		task_1();
-
-		Method readMethod = GoalController.class.getDeclaredMethod("read");
-		PreAuthorize readPreAuthorize = readMethod.getAnnotation(PreAuthorize.class);
-		assertNotNull(
-				"Task 2: Please add the `@PreAuthorize` annotation to the `GoalController#read()` method.",
-				readPreAuthorize);
-
-		AccessDeniedException e = tryAuthorized(this.controller::read, this.hasread);
-		if (e != null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#read()` evaluated to `false` when it was " +
-					"given a user with a `goal:read` permission. Double check your expression; it " +
-					"should look something like `@PreAuthorize(\"hasAuthority('goal:read')\")`");
-		}
-
-		e = tryAuthorized(this.controller::read, this.haswrite);
-		if (e == null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#read()` evaluated to `true` when it was " +
-					"given a user without a `goal:read` permission. Double check your expression; it " +
-					"should look something like `@PreAuthorize(\"hasAuthority('goal:read')\")`" );
-		}
-
-		MvcResult result = this.mvc.perform(get("/goals")
-			.with(httpBasic("hasread", "password")))
-			.andReturn();
-
-		assertNotEquals(
-				"Task 2: The `/goals` endpoint failed to authenticate with `hasread`/`password`. " +
-						"Make sure this username/password is added via your `UserRepository` on startup.",
-				401, result.getResponse().getStatus());
-
-		assertNotEquals(
-				"Task 2: The `/goals` endpoint failed to authorize `hasread`/`password`. " +
-						"Make sure this username/password is granted the `goal:read` authority",
-				403, result.getResponse().getStatus());
-
-		assertEquals(
-				"Task 2: The `/goals` endpoint failed with a status code of " +
-						result.getResponse().getStatus(),
-				200, result.getResponse().getStatus());
-
-		Method makeMethod = GoalController.class.getDeclaredMethod("make", String.class, String.class);
-		PreAuthorize makePreAuthorize = makeMethod.getAnnotation(PreAuthorize.class);
-		assertNotNull(
-				"Task 2: Please add the `@PreAuthorize` annotation to the `GoalController#make` method.",
-				makePreAuthorize);
-
-		e = tryAuthorized(() -> make("goal", this.haswrite), this.haswrite);
-		if (e != null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#make` evaluated to `false` when it was " +
-					"given a user with a `goal:write` permission. Double check your expression; it " +
-					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`");
-		}
-
-		e = tryAuthorized(() -> make("goal", this.hasread), this.hasread);
-		if (e == null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#make` evaluated to `true` when it was " +
-					"given a user without a `goal:write` permission. Double check your expression; it " +
-					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`" );
-		}
-
-		readMethod = GoalController.class.getDeclaredMethod("read", UUID.class);
-		readPreAuthorize = readMethod.getAnnotation(PreAuthorize.class);
-		assertNotNull(
-				"Task 2: Please add the `@PreAuthorize` annotation to the `GoalController#read(UUID)` method.",
-				readPreAuthorize);
-
-		e = tryAuthorized(() -> this.controller.read(this.hasreadGoal.getId()), this.hasread);
-		if (e != null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#read(UUID)` evaluated to `false` when it was " +
-					"given a user with a `goal:read` permission. Double check your expression; it " +
-					"should look like `@PreAuthorize(\"hasAuthority('goal:read')\")`");
-		}
-
-		e = tryAuthorized(() -> this.controller.read(this.haswriteGoal.getId()), this.haswrite);
-		if (e == null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#read(UUID)` evaluated to `true` when it was " +
-					"given a user without a `goal:read` permission. Double check your expression; it " +
-					"should look like `@PreAuthorize(\"hasAuthority('goal:read')\")`" );
-		}
-
-		Method reviseMethod = GoalController.class.getDeclaredMethod("revise", UUID.class, String.class);
-		PreAuthorize revisePreAuthorize = reviseMethod.getAnnotation(PreAuthorize.class);
-		assertNotNull(
-				"Task 2: Please add the `@PreAuthorize` annotation to the `GoalController#revise(UUID, String)` method.",
-				revisePreAuthorize);
-
-		e = tryAuthorized(() -> this.controller.revise(this.haswriteGoal.getId(), "new text"), this.haswrite);
-		if (e != null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#revise(UUID, String)` evaluated to `false` when it was " +
-					"given a user with a `goal:write` permission. Double check your expression; it " +
-					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`");
-		}
-
-		e = tryAuthorized(() -> this.controller.revise(this.hasreadGoal.getId(), "new text"), this.hasread);
-		if (e == null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#revise(UUID, String)` evaluated to `true` when it was " +
-					"given a user without a `goal:write` permission. Double check your expression; it " +
-					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`" );
-		}
-
-		Method completeMethod = GoalController.class.getDeclaredMethod("complete", UUID.class);
-		PreAuthorize completePreAuthorize = completeMethod.getAnnotation(PreAuthorize.class);
-		assertNotNull(
-				"Task 2: Please add the `@PreAuthorize` annotation to the `GoalController#complete(UUID, String)` method.",
-				completePreAuthorize);
-
-		e = tryAuthorized(() -> this.controller.complete(this.haswriteGoal.getId()), this.haswrite);
-		if (e != null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#complete(UUID, String)` evaluated to `false` when it was " +
-					"given a user with a `goal:write` permission. Double check your expression; it " +
-					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`");
-		}
-
-		e = tryAuthorized(() -> this.controller.complete(this.hasreadGoal.getId()), this.hasread);
-		if (e == null) {
-			fail("Task 2: Your `@PreAuthorize` annotation for `GoalController#complete(UUID, String)` evaluated to `true` when it was " +
-					"given a user without a `goal:write` permission. Double check your expression; it " +
-					"should look like `@PreAuthorize(\"hasAuthority('goal:write')\")`" );
-		}
-	}
-
-	@Test
-	public void task_3() throws Exception {
-		// use @PostAuthorize
-		task_2();
-		Method readMethod = GoalController.class.getDeclaredMethod("read", UUID.class);
-		PostAuthorize readPostAuthorize = readMethod.getAnnotation(PostAuthorize.class);
-		assertNotNull(
-				"Task 3: Please add the `@PostAuthorize` annotation to the `GoalController#read(UUID)` method.",
-				readPostAuthorize);
-
-		AccessDeniedException e = tryAuthorized(() -> this.controller.read(this.hasreadGoal.getId()), this.hasread);
-		if (e != null) {
-			fail("Task 3: The `/goal/{id}` endpoint failed to authorize the `hasread` user to read a goal " +
-					"that belonged to them. Please double-check your `@PostAuthorize` expression.");
-		}
-
-		e = tryAuthorized(() -> this.controller.read(this.haswriteGoal.getId()), this.hasread);
-		if (e == null) {
-			fail("Task 3: The `/goal/{id}` endpoint authorized the `hasread` user to read a goal " +
-					"that didn't belonged to them. Please double-check your `@PostAuthorize` expression.");
-		}
-
-		MvcResult result = this.mvc.perform(get("/goal/" + this.hasreadGoal.getId())
-				.with(httpBasic("hasread", "password")))
-				.andReturn();
-
-		assertNotEquals(
-				"Task 3: The `/goal/{id}` endpoint failed to authenticate with `hasread`/`password`. " +
-						"Make sure this username/password is added via your `UserRepository` on startup.",
-				401, result.getResponse().getStatus());
-
-		assertNotEquals(
-				"Task 3: The `/goal/{id}` endpoint failed to authorize `hasread`/`password`. " +
-						"Make sure this username/password is granted the `goal:read` authority.",
-				403, result.getResponse().getStatus());
-
-		assertEquals(
-				"Task 3: The `/goal/{id}` endpoint failed with a status code of " +
-						result.getResponse().getStatus(),
-				200, result.getResponse().getStatus());
-	}
-
-
-	@Test
-	public void task_4() throws Exception {
+	private void _task_4() throws Exception {
 		// use post filter
-		task_3();
+		task_2();
 
 		Method readMethod = GoalController.class.getDeclaredMethod("read");
 		PostFilter readPostFilter = readMethod.getAnnotation(PostFilter.class);
 		assertNotNull(
-				"Task 4: Please add the `@PostFilter` annotation to the `read()` method.",
+				"Task 3: Please add the `@PostFilter` annotation to the `read()` method.",
 				readPostFilter);
 
 		SecurityContextHolder.getContext().setAuthentication(this.hasread);
 		try {
 			Iterable<Goal> goals = this.controller.read();
 			assertTrue(
-					"Task 4: Calling `GoalController#read()` returned no results. " +
+					"Task 3: Calling `GoalController#read()` returned no results. " +
 							"Make sure that your filter is keeping records whose owner matches the logged in user.",
 					goals.iterator().hasNext());
 			for (Goal goal : goals) {
 				assertEquals(
-						"Task 4: One of the goals returned from RepositoryController#read() " +
+						"Task 3: One of the goals returned from RepositoryController#read() " +
 								"did not belong to the logged-in user. Make sure that your `@PostFilter` " +
 								"annotation is checking that the goal's owner id matches the logged in user's id.",
 						"hasread", goal.getOwner());
@@ -411,110 +540,14 @@ public class Module2_Tests {
 		}
 	}
 
-	@Test
-	public void task_5() throws Exception {
-		task_4();
-
-		Method reviseMethod = GoalController.class.getDeclaredMethod("revise", UUID.class, String.class);
-		PostAuthorize revisePostAuthorize = reviseMethod.getAnnotation(PostAuthorize.class);
-		assertNotNull(
-				"Task 5: Please add the `@PostAuthorize` annotation to the `GoalController#revise` method",
-				revisePostAuthorize);
-
-		reviseMethod = GoalRepository.class.getDeclaredMethod("revise", UUID.class, String.class);
-		Query reviseQuery = reviseMethod.getAnnotation(Query.class);
-		assertNotNull(
-				"Task 5: Please restore the `@Query` annotation to the `GoalRepository#revise(UUID, String)` method",
-				reviseQuery);
-
-		assertTrue(
-				"Task 5: Use the `?#{authentication.name}` expression to change the query and ensure that no update is performed unless the " +
-						"goal belongs to the logged-in user",
-				reviseQuery.value().contains("?#{authentication"));
-
-		AccessDeniedException e = tryAuthorized(
-				() -> this.controller.revise(this.haswriteGoal.getId(), "has write test revised"), this.haswrite);
-		if (e != null) {
-			fail("Task 5: The `/goal/{id}/revise` endpoint failed to authorize the `haswrite` user to revise a goal " +
-					"that belonged to them. Please double-check your `@PostAuthorize` expression");
-		} else {
-			assertTrue(
-					"Task 5: The `/goal/{id}/revise` endpoint failed to revise a goal that belonged to `haswrite`. " +
-							"Please double-check your `@Query` expression",
-					this.repository.findById(this.haswriteGoal.getId())
-							.filter(goal -> goal.getText().equals("has write test revised"))
-							.isPresent());
-		}
-
-		e = tryAuthorized(
-				() -> this.controller.revise(this.hasreadGoal.getId(), "has read test revised"), this.haswrite);
-		if (e == null) {
-			fail("Task 5: The `/goal/{id}/revise` endpoint authorized the `haswrite` user to revise a goal " +
-					"that didn't belonged to them. Please double-check your `@PostAuthorize` expression" );
-		} else {
-			assertFalse(
-					"Task 5: The `/goal/{id}/revise` endpoint allowed `haswrite` to revise a goal that didn't belong to them. " +
-							"Please double-check your `@Query` expression",
-					this.repository.findById(this.hasreadGoal.getId())
-							.filter(goal -> goal.getText().equals("has read test revised"))
-							.isPresent());
-		}
-
-		Method completeMethod = GoalController.class.getDeclaredMethod("complete", UUID.class);
-		PostAuthorize completePostAuthorize = completeMethod.getAnnotation(PostAuthorize.class);
-		assertNotNull(
-				"Task 5: Please add the `@PostAuthorize` annotation to the `GoalController#revise` method",
-				completePostAuthorize);
-
-		completeMethod = GoalRepository.class.getDeclaredMethod("complete", UUID.class);
-		Query completeQuery = completeMethod.getAnnotation(Query.class);
-		assertNotNull(
-				"Task 5: Please restore the `@Query` annotation to the `GoalRepository#revise(UUID, String)` method",
-				completeQuery);
-
-		assertTrue(
-				"Task 5: Use the `?#{authentication.name}` expression to change the query and ensure that no update is performed unless the " +
-						"goal belongs to the logged-in user",
-				completeQuery.value().contains("?#{authentication"));
-
-		e = tryAuthorized(
-				() -> this.controller.complete(this.haswriteGoal.getId()), this.haswrite);
-		if (e != null) {
-			fail("Task 5: The `/goal/{id}/complete` endpoint failed to authorize the `haswrite` user to revise a goal " +
-					"that belonged to them. Please double-check your `@PostAuthorize` expression");
-		} else {
-			assertTrue(
-					"Task 5: The `/goal/{id}/complete` endpoint failed to revise a goal that belonged to `haswrite`. " +
-							"Please double-check your `@Query` expression",
-					this.repository.findById(this.haswriteGoal.getId())
-							.filter(Goal::getCompleted)
-							.isPresent());
-		}
-
-		e = tryAuthorized(
-				() -> this.controller.complete(this.hasreadGoal.getId()), this.haswrite);
-		if (e == null) {
-			fail("Task 5: The `/goal/{id}/complete` endpoint authorized the `haswrite` user to revise a goal " +
-					"that didn't belonged to them. Please double-check your `@PostAuthorize` expression" );
-		} else {
-			assertFalse(
-					"Task 5: The `/goal/{id}/complete` endpoint allowed `haswrite` to revise a goal that didn't belong to them. " +
-							"Please double-check your `@Query` expression",
-					this.repository.findById(this.hasreadGoal.getId())
-							.filter(Goal::getCompleted)
-							.isPresent());
-		}
-	}
-
-	@Test
-	public void task_6() throws Exception {
-		task_5();
+	private void _task_6() throws Exception {
+		task_3();
 
 		// add custom authorization expression
 		try {
 			this.userDetailsService.loadUserByUsername("admin");
 		} catch (UsernameNotFoundException e) {
-			fail("Task 6: No admin user was found. Please double-check that you are adding a user with username `admin` and password `password` to the database");
+			fail("Task 4: No admin user was found. Please double-check that you are adding a user with username `admin` and password `password` to the database");
 		}
 
 		Authentication admin = token("admin");
@@ -524,29 +557,28 @@ public class Module2_Tests {
 			List<UUID> all = StreamSupport.stream(this.repository.findAll().spliterator(), false)
 					.map(Goal::getId).collect(Collectors.toList());
 			assertEquals(
-					"Task 6: The admin user should receive all records back. Please double-check your `@PostFilter` expression that it allows all records if the user has the `ROLE_ADMIN` authority",
+					"Task 4: The admin user should receive all records back. Please double-check your `@PostFilter` expression that it allows all records if the user has the `ROLE_ADMIN` authority",
 					goals, all);
 		}, admin);
 
 		assertNull(
-				"Task 6: The `/goals` endpoint denied the admin user. Make sure that the admin is granted the `goal:read` authority.",
+				"Task 4: The `/goals` endpoint denied the admin user. Make sure that the admin is granted the `goal:read` authority.",
 				e);
 
 
 		e = tryAuthorized(() -> this.controller.read(this.haswriteGoal.getId()), admin);
 		assertNull(
-				"Task 6: The `/goals/{id}` GET endpoint failed to authorize the admin user to read a record that doesn't belong to them. " +
+				"Task 4: The `/goals/{id}` GET endpoint failed to authorize the admin user to read a record that doesn't belong to them. " +
 						"Please make sure that the admin has the `goal:read` permission and please check your `@PostAuthorize` expression for `GoalController#read(UUID)`",
 				e);
 	}
 
-	@Test
-	public void task_7() throws Exception {
+	private void _task_7() throws Exception {
 		// add custom authorization rule
-		task_6();
+		_task_6();
 
 		assertNotNull(
-				"Task 7: Make sure to add the `GoalAuthorizer` to the application context. " +
+				"Task 4: Make sure to add the `GoalAuthorizer` to the application context. " +
 						"One way to do this is by adding the `@Component` annotation",
 				this.authorizer);
 
@@ -554,7 +586,7 @@ public class Module2_Tests {
 
 		Method authorize = method(GoalAuthorizer.class, "authorize", MethodSecurityExpressionOperations.class);
 		assertNotNull(
-				"Task 7: Please add an `authorize` method to `GoalAuthorizer` that takes a `MethodSecurityExpressionOperations` as a parameter.",
+				"Task 4: Please add an `authorize` method to `GoalAuthorizer` that takes a `MethodSecurityExpressionOperations` as a parameter.",
 				authorize);
 
 		MethodSecurityExpressionOperations operations = mock(MethodSecurityExpressionOperations.class);
@@ -564,10 +596,10 @@ public class Module2_Tests {
 
 		try {
 			assertTrue(
-					"Task 7: `GoalAuthorizer#authorize` refused to authorize the admin user. Please double-check its logic",
+					"Task 4: `GoalAuthorizer#authorize` refused to authorize the admin user. Please double-check its logic",
 					(boolean) authorize.invoke(this.authorizer, operations));
 		} catch (Exception e) {
-			fail("Task 7: `GoalAuthorizer#authorize` threw an exception: " + e);
+			fail("Task 4: `GoalAuthorizer#authorize` threw an exception: " + e);
 		}
 
 		reset(operations);
@@ -577,20 +609,20 @@ public class Module2_Tests {
 
 		try {
 			assertFalse(
-					"Task 7: `GoalAuthorizer#authorize` authorized `hasread` to read a goal owned by `haswrite`. Please double-check its logic",
+					"Task 4: `GoalAuthorizer#authorize` authorized `hasread` to read a goal owned by `haswrite`. Please double-check its logic",
 					(boolean) authorize.invoke(this.authorizer, operations));
 		} catch (Exception e) {
-			fail("Task 7: `GoalAuthorizer#authorize` threw an exception: " + e);
+			fail("Task 4: `GoalAuthorizer#authorize` threw an exception: " + e);
 		}
 
 		PostAuthorize readPostAuthorize = annotation(PostAuthorize.class, "read", UUID.class);
 		assertTrue(
-				"Task 7: Make sure that you are passing `#root` into the authorizer's `authorize` method",
+				"Task 4: Make sure that you are passing `#root` into the authorizer's `authorize` method",
 				readPostAuthorize.value().contains("#root"));
 
 		Method filter = method(GoalAuthorizer.class, "filter", MethodSecurityExpressionOperations.class);
 		assertNotNull(
-				"Task 7: Please add an `filter` method to `GoalAuthorizer` that takes a `MethodSecurityExpressionOperations` as a parameter.",
+				"Task 4: Please add an `filter` method to `GoalAuthorizer` that takes a `MethodSecurityExpressionOperations` as a parameter.",
 				filter);
 
 		reset(operations);
@@ -600,10 +632,10 @@ public class Module2_Tests {
 
 		try {
 			assertTrue(
-					"Task 7: `GoalAuthorizer#filter` refused to authorize the admin user. Please double-check its logic",
+					"Task 4: `GoalAuthorizer#filter` refused to authorize the admin user. Please double-check its logic",
 					(boolean) filter.invoke(this.authorizer, operations));
 		} catch (Exception e) {
-			fail("Task 7: `GoalAuthorizer#filter` threw an exception: " + e);
+			fail("Task 4: `GoalAuthorizer#filter` threw an exception: " + e);
 		}
 
 		reset(operations);
@@ -613,15 +645,15 @@ public class Module2_Tests {
 
 		try {
 			assertFalse(
-					"Task 7: `GoalAuthorizer#filter` authorized `hasread` to read a goal owned by `haswrite`. Please double-check its logic",
+					"Task 4: `GoalAuthorizer#filter` authorized `hasread` to read a goal owned by `haswrite`. Please double-check its logic",
 					(boolean) filter.invoke(this.authorizer, operations));
 		} catch (Exception e) {
-			fail("Task 7: `GoalAuthorizer#filter` threw an exception: " + e);
+			fail("Task 4: `GoalAuthorizer#filter` threw an exception: " + e);
 		}
 
 		PostFilter readPostFilter = annotation(PostFilter.class, "read");
 		assertTrue(
-				"Task 7: Make sure that you are passing `#root` into the authorizer's `authorize` method",
+				"Task 4: Make sure that you are passing `#root` into the authorizer's `authorize` method",
 				readPostFilter.value().contains("#root"));
 
 		MvcResult result = this.mvc.perform(get("/goals")
@@ -629,46 +661,9 @@ public class Module2_Tests {
 				.andReturn();
 
 		assertEquals(
-				"Task 7: The `/goals` endpoint did not allow the admin user, returning the response code of " +
+				"Task 4: The `/goals` endpoint did not allow the admin user, returning the response code of " +
 						result.getResponse().getStatus(),
 				200, result.getResponse().getStatus());
-	}
-
-	@Test
-	public void task_8() throws Exception {
-		task_7();
-
-		UserDetails admin = this.userDetailsService.loadUserByUsername("admin");
-		List<String> grantedAuthorities = admin.getAuthorities().stream()
-				.map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-		Optional<User> user = this.users.findById(new ReflectedUser((User) admin).getId());
-		List<String> userAuthorities = user
-				.map(ReflectedUser::new)
-				.map(ReflectedUser::getUserAuthorities)
-				.orElse(Collections.emptyList()).stream()
-				.map(ReflectedUserAuthority::new)
-				.map(ReflectedUserAuthority::getAuthority)
-				.collect(Collectors.toList());
-
-		assertFalse(
-				"Task 8: Please remove the `goal:read` and `goal:write` authority from the admin user in the database. " +
-						"Add them via your `UserRepositoryUserDetailsService` instead",
-				userAuthorities.contains("goal:read") || userAuthorities.contains("goal:write"));
-		assertTrue(
-				"Task 8: Please make sure the admin still has the `ROLE_ADMIN` authority in the database",
-				userAuthorities.contains("ROLE_ADMIN"));
-
-		assertTrue(
-				"Task 8: After calling your `UserDetailsService`, the admin user is still missing the `goal:read` authority",
-				grantedAuthorities.contains("goal:read"));
-
-		assertTrue(
-				"Task 8: After calling your `UserDetailsService`, the admin user is still missing the `goal:write` authority",
-				grantedAuthorities.contains("goal:write"));
-
-		assertTrue(
-				"Task 8: After calling your `UserDetailsService`, the admin user is still missing the `ROLE_ADMIN` authority",
-				grantedAuthorities.contains("ROLE_ADMIN"));
 	}
 
 	Goal make(String text, Authentication token) {
