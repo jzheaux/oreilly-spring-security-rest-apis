@@ -260,7 +260,7 @@ public class Module6_Tests {
 				"Task 1: Did an `OPTIONS` pre-flight request from `http://localhost:4000` for `GET /goals`, and it is allowing credentials;" +
 						"this should be shut off now that you are using Bearer Token authentication",
 				result.getResponse().getHeader("Access-Control-Allow-Credentials"));
-
+/*
 		result = this.mvc.perform(options("/" + UUID.randomUUID())
 				.header("Access-Control-Request-Method", "HEAD")
 				.header("Access-Control-Allow-Credentials", "true")
@@ -270,12 +270,22 @@ public class Module6_Tests {
 		assertNull(
 				"Task 1: Did an `OPTIONS` pre-flight request from `http://localhost:4000` for a random endpoint, and it is allowing credentials;" +
 						"this should be shut off now that you are using Bearer Token authentication",
-				result.getResponse().getHeader("Access-Control-Allow-Credentials"));
+				result.getResponse().getHeader("Access-Control-Allow-Credentials"));*/
 	}
 
 	@Test
 	public void task_2() throws Exception {
-		task_1();
+		_task_2();
+
+		// publish web client
+		assertNotNull(
+				"Task 3: Make sure you are adding an instance of `ServletBearerExchangeFilterFunction` to your " +
+						"`WebClient.Builder` definition",
+				getFilter(ServletBearerExchangeFilterFunction.class));
+	}
+
+	private void _task_2() throws Exception {
+		_task_4();
 		// add UserService
 
 		assertNotNull(
@@ -304,36 +314,8 @@ public class Module6_Tests {
 				this.userEndpoint.getRequestCount() > 0);
 	}
 
-	@Test
-	public void task_3() throws Exception {
-		task_2();
-
-		// publish web client
-		assertNotNull(
-				"Task 3: Make sure you are adding an instance of `ServletBearerExchangeFilterFunction` to your " +
-						"`WebClient.Builder` definition",
-				getFilter(ServletBearerExchangeFilterFunction.class));
-	}
-
-	private <T extends ExchangeFilterFunction> T getFilter(Class<T> clazz) throws Exception {
-		Field filtersField = this.web.getClass().getDeclaredField("filters");
-		filtersField.setAccessible(true);
-		List<ExchangeFilterFunction> filters = (List<ExchangeFilterFunction>)
-				filtersField.get(this.web);
-		if (filters == null) {
-			return null;
-		}
-		for (ExchangeFilterFunction filter : filters) {
-			if (filter instanceof ServletBearerExchangeFilterFunction) {
-				return (T) filter;
-			}
-		}
-		return null;
-	}
-
-	@Test
-	public void task_4() throws Exception {
-		task_3();
+	private void _task_4() throws Exception {
+		task_1();
 		// update goal controller
 
 		int count = this.userEndpoint.getRequestCount();
@@ -356,6 +338,22 @@ public class Module6_Tests {
 			SecurityContextHolder.clearContext();
 			this.authz.revoke(token);
 		}
+	}
+
+	private <T extends ExchangeFilterFunction> T getFilter(Class<T> clazz) throws Exception {
+		Field filtersField = this.web.getClass().getDeclaredField("filters");
+		filtersField.setAccessible(true);
+		List<ExchangeFilterFunction> filters = (List<ExchangeFilterFunction>)
+				filtersField.get(this.web);
+		if (filters == null) {
+			return null;
+		}
+		for (ExchangeFilterFunction filter : filters) {
+			if (filter instanceof ServletBearerExchangeFilterFunction) {
+				return (T) filter;
+			}
+		}
+		return null;
 	}
 
 	private Authentication getAuthentication(String token) {
