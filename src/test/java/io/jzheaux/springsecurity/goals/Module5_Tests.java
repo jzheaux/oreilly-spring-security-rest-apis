@@ -238,7 +238,8 @@ public class Module5_Tests {
     }
 
     @Test
-    public void task_1() {
+    public void task_1() throws Exception {
+        _task_1();
         // add application.yml configuration
         assertNotNull(
                 "Task 1: Could not find an `OpaqueTokenIntrospector` bean in the application context." +
@@ -254,6 +255,58 @@ public class Module5_Tests {
     @Test
     public void task_2() throws Exception {
         task_1();
+        // customize OpaqueTokenIntrospector
+
+        assertNotNull(
+                "Task 2: Please make sure that you've supplied an instance of `UserRepositoryOpaqueTokenIntrospector` to the application context",
+                this.introspector instanceof UserRepositoryOpaqueTokenIntrospector);
+
+        String token = this.authz.token("user", "goal:read");
+        OAuth2AuthenticatedPrincipal principal = this.introspector.introspect(token);
+        assertFalse(
+                "Task 2: For a token with a scope of `goal:read`, your custom `OpaqueTokenIntrospector` returned no scopes back",
+                principal.getAuthorities().isEmpty());
+        assertEquals(
+                "Task 2: For a token with a scope of `goal:read`, a `GrantedAuthority` of `goal:read` was not returned. " +
+                        "Make sure that you are stripping off the `SCOPE_` prefix in your custom `OpaqueTokenIntrospector`",
+                "goal:read", principal.getAuthorities().iterator().next().getAuthority());
+    }
+
+    @Test
+    public void task_3() throws Exception {
+        _task_3();
+        // reconcile with UserRepository using JwtAuthenticationConverter
+
+        String token = this.authz.token(UUID.randomUUID().toString(), "goal:write");
+        try {
+            this.introspector.introspect(token);
+            fail(
+                    "Task 6: Create a custom `OpaqueTokenIntrospector` that reconciles the `sub` field in the token response " +
+                            "with what's in the `UserRepository`. If the user isn't there, throw a `UsernameNotFoundException`.");
+        } catch (UsernameNotFoundException expected) {
+            // ignore
+        } finally {
+            this.authz.revoke(token);
+        }
+    }
+
+    @Test
+    public void task_4() throws Exception {
+        _task_8();
+        // derive share permission
+        String token = this.authz.token("haswrite", "goal:write");
+        try {
+            OAuth2AuthenticatedPrincipal principal = this.introspector.introspect(token);
+            assertTrue(
+                    "Task 7: Make so that when a token is granted `goal:write` and the user has a `premium` subscription that the " +
+                            "final principal as the `goal:share` authority",
+                    principal.getAuthorities().contains(new SimpleGrantedAuthority("goal:share")));
+        } finally {
+            this.authz.revoke(token);
+        }
+    }
+
+    private void _task_1() throws Exception {
 
         String token = this.authz.token("user", "goal:read");
         try {
@@ -261,7 +314,7 @@ public class Module5_Tests {
                     .header("Authorization", "Bearer " + token))
                     .andReturn();
             assertNotEquals(
-                    "Task 2: Make sure that you've configured the application to use Bearer token authentication by adding the appropriate " +
+                    "Task 1: Make sure that you've configured the application to use Bearer token authentication by adding the appropriate " +
                             "oauth2ResourceServer call to the Spring Security DSL in `GoalsApplication`",
                     401, result.getResponse().getStatus());
             // until we add scopes, this will be a 403; after we add scopes, it'll be a 200. But it will never been a 401.
@@ -270,29 +323,8 @@ public class Module5_Tests {
         }
     }
 
-    @Test
-    public void task_3() throws Exception {
-        task_2();
-        // customize OpaqueTokenIntrospector
-
-        assertNotNull(
-                "Task 6: Please make sure that you've supplied an instance of `UserRepositoryOpaqueTokenIntrospector` to the application context",
-                this.introspector instanceof UserRepositoryOpaqueTokenIntrospector);
-
-        String token = this.authz.token("user", "goal:read");
-        OAuth2AuthenticatedPrincipal principal = this.introspector.introspect(token);
-        assertFalse(
-                "Task 3: For a token with a scope of `goal:read`, your custom `OpaqueTokenIntrospector` returned no scopes back",
-                principal.getAuthorities().isEmpty());
-        assertEquals(
-                "Task 3: For a token with a scope of `goal:read`, a `GrantedAuthority` of `goal:read` was not returned. " +
-                        "Make sure that you are stripping off the `SCOPE_` prefix in your custom `OpaqueTokenIntrospector`",
-                "goal:read", principal.getAuthorities().iterator().next().getAuthority());
-    }
-
-    @Test
-    public void task_4() throws Exception {
-        task_3();
+    private void _task_3() throws Exception {
+        _task_5();
 
         // add subscription property
         Field nameField = getDeclaredFieldByColumnName(User.class, "subscription");
@@ -303,17 +335,17 @@ public class Module5_Tests {
         ReflectedUser user = new ReflectedUser((User) this.userDetailsService.loadUserByUsername("haswrite"));
         ReflectedUser copy = ReflectedUser.copiedInstance(user);
         assertEquals(
-                "Task 4: Update your copy constructor so that the subscription is also copied",
+                "Task 3: Update your copy constructor so that the subscription is also copied",
                 user.getSubscription(), copy.getSubscription());
 
         assertEquals(
-                "Task 4: Please give `haswrite` a `premium` subscription.",
+                "Task 3: Please give `haswrite` a `premium` subscription.",
                 "premium", user.getSubscription());
 
         // add friends property
         Field friendsField = getDeclaredFieldByName(User.class, "friends");
         assertNotNull(
-                "Task 4: Please add a friends property to the `User` class that maps to a `Collection` of other `User`s",
+                "Task 3: Please add a friends property to the `User` class that maps to a `Collection` of other `User`s",
                 friendsField);
 
         user = new ReflectedUser((User) this.userDetailsService.loadUserByUsername("haswrite"));
@@ -325,21 +357,20 @@ public class Module5_Tests {
                 .map(u -> new ReflectedUser(u).getUsername())
                 .collect(Collectors.toList());
         assertEquals(
-                "Task 4: The friends of the original and its copy are different.",
+                "Task 3: The friends of the original and its copy are different.",
                 userFriends,
                 copyFriends);
 
         assertFalse(
-                "Task 4: Please add `hasread` to `haswrite`'s list of friends",
+                "Task 3: Please add `hasread` to `haswrite`'s list of friends",
                 userFriends.isEmpty());
         assertTrue(
-                "Task 4: Please add `hasread` to `haswrite`'s list of friends",
+                "Task 3: Please add `hasread` to `haswrite`'s list of friends",
                 userFriends.contains("hasread"));
     }
 
-    @Test
-    public void task_5() throws Exception {
-        task_4();
+    private void _task_5() throws Exception {
+        task_2();
         // add share endpoint
 
         Goal goal = this.goalRepository.save(new Goal("haswrite's latest goal", "haswrite"));
@@ -388,51 +419,16 @@ public class Module5_Tests {
             Iterable<Goal> goals = this.goalController.read();
             for (Goal hasReadGoals : goals) {
                 assertNotEquals(
-                    "Task 5: A user with the `goal:share` authority was able to share a goal that wasn't theirs.",
-                    "user's latest goal", hasReadGoals.getText());
+                        "Task 5: A user with the `goal:share` authority was able to share a goal that wasn't theirs.",
+                        "user's latest goal", hasReadGoals.getText());
             }
         } finally {
             SecurityContextHolder.clearContext();
         }
     }
 
-    @Test
-    public void task_6() throws Exception {
-        task_5();
-        // reconcile with UserRepository using JwtAuthenticationConverter
-
-        String token = this.authz.token(UUID.randomUUID().toString(), "goal:write");
-        try {
-            this.introspector.introspect(token);
-            fail(
-                    "Task 6: Create a custom `OpaqueTokenIntrospector` that reconciles the `sub` field in the token response " +
-                            "with what's in the `UserRepository`. If the user isn't there, throw a `UsernameNotFoundException`.");
-        } catch (UsernameNotFoundException expected) {
-            // ignore
-        } finally {
-            this.authz.revoke(token);
-        }
-    }
-
-    @Test
-    public void task_7() throws Exception {
-        task_6();
-        // derive share permission
-        String token = this.authz.token("haswrite", "goal:write");
-        try {
-            OAuth2AuthenticatedPrincipal principal = this.introspector.introspect(token);
-            assertTrue(
-                    "Task 7: Make so that when a token is granted `goal:write` and the user has a `premium` subscription that the " +
-                            "final principal as the `goal:share` authority",
-                    principal.getAuthorities().contains(new SimpleGrantedAuthority("goal:share")));
-        } finally {
-            this.authz.revoke(token);
-        }
-    }
-
-    @Test
-    public void task_8() throws Exception {
-        task_7();
+    private void _task_8() throws Exception {
+        task_3();
         // create custom principal
         Goal goal = this.goalRepository.save(new Goal("haswrite's new goal", "haswrite"));
         String token = this.authz.token("haswrite", "goal:write");
