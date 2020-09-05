@@ -29,7 +29,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import javax.servlet.Filter;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -37,7 +36,6 @@ import static io.jzheaux.springsecurity.goals.ReflectionSupport.annotation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 
 @RunWith(SpringRunner.class)
@@ -98,8 +96,7 @@ public class Module3_Tests {
 
     }
 
-    @Test
-    public void task_1() {
+    private void _task_1() {
         // add @CrossOrigin
 
         CrossOrigin crossOrigin = annotation(CrossOrigin.class, "read");
@@ -109,8 +106,8 @@ public class Module3_Tests {
     }
 
     @Test
-    public void task_2() {
-        task_1();
+    public void task_1() {
+        _task_1();
         // cors()
 
         CorsFilter filter = getFilter(CorsFilter.class);
@@ -121,66 +118,8 @@ public class Module3_Tests {
     }
 
     @Test
-    public void task_3() throws Exception {
-        task_2();
-        // global settings
-
-        CorsConfiguration configuration = this.cors.getCorsConfiguration
-                (new MockHttpServletRequest("GET", "/" + UUID.randomUUID()));
-
-        assertNotNull(
-                "Task 3: Make sure that you've added a mapping for all endpoints by calling `addMapping(\"/**\")`'",
-                configuration);
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing `HEAD`",
-                1, configuration.getAllowedMethods().size());
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing `HEAD`",
-                "HEAD", configuration.getAllowedMethods().get(0));
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `Authorization` header",
-                1, configuration.getAllowedHeaders().size());
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `Authorization` header",
-                "Authorization", configuration.getAllowedHeaders().get(0));
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `http://localhost:4000` origin",
-                1, configuration.getAllowedOrigins().size());
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `http://localhost:4000` origin",
-                "http://localhost:4000", configuration.getAllowedOrigins().get(0));
-
-        MvcResult result = this.mvc.perform(options("/goals")
-            .header("Access-Control-Request-Method", "GET")
-            .header("Origin", "http://localhost:4000"))
-            .andReturn();
-
-        assertEquals(
-                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:4000` for `GET /goals` failed.",
-                200, result.getResponse().getStatus());
-
-        result = this.mvc.perform(options("/goals")
-                .header("Access-Control-Request-Method", "GET")
-                .header("Origin", "http://localhost:5000"))
-                .andReturn();
-
-        assertNotEquals(
-                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:5000` for `GET /goals` and it succeeded.",
-                200, result.getResponse().getStatus());
-
-        result = this.mvc.perform(options("/" + UUID.randomUUID())
-                .header("Access-Control-Request-Method", "GET")
-                .header("Origin", "http://localhost:4000"))
-                .andReturn();
-
-        assertNotEquals(
-                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:4000` for a random endpoint, and it succeeded.",
-                200, result.getResponse().getStatus());
-    }
-
-    @Test
-    public void task_4() throws Exception {
-        task_3();
+    public void task_2() throws Exception {
+        task_1();
 
         CrossOrigin crossOrigin = annotation(CrossOrigin.class, "read");
         if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
@@ -214,6 +153,64 @@ public class Module3_Tests {
                             "Make sure that you haven't allowed credentials globally.",
                     "true", result.getResponse().getHeader("Access-Control-Allow-Credentials"));
         }
+    }
+
+    @Test
+    public void task_3() throws Exception {
+        task_2();
+        // global settings
+
+        CorsConfiguration configuration = this.cors.getCorsConfiguration
+                (new MockHttpServletRequest("GET", "/" + UUID.randomUUID()));
+
+        assertNotNull(
+                "Task 3: Make sure that you've added a mapping for all endpoints by calling `addMapping(\"/**\")`'",
+                configuration);
+        assertEquals(
+                "Task 3: Make sure that globally you are only allowing `HEAD`",
+                1, configuration.getAllowedMethods().size());
+        assertEquals(
+                "Task 3: Make sure that globally you are only allowing `HEAD`",
+                "HEAD", configuration.getAllowedMethods().get(0));
+        assertEquals(
+                "Task 3: Make sure that globally you are only allowing the `Authorization` header",
+                1, configuration.getAllowedHeaders().size());
+        assertEquals(
+                "Task 3: Make sure that globally you are only allowing the `Authorization` header",
+                "Authorization", configuration.getAllowedHeaders().get(0));
+        assertEquals(
+                "Task 3: Make sure that globally you are only allowing the `http://localhost:4000` origin",
+                1, configuration.getAllowedOrigins().size());
+        assertEquals(
+                "Task 3: Make sure that globally you are only allowing the `http://localhost:4000` origin",
+                "http://localhost:4000", configuration.getAllowedOrigins().get(0));
+
+        MvcResult result = this.mvc.perform(options("/goals")
+                .header("Access-Control-Request-Method", "GET")
+                .header("Origin", "http://localhost:4000"))
+                .andReturn();
+
+        assertEquals(
+                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:4000` for `GET /goals` failed.",
+                200, result.getResponse().getStatus());
+
+        result = this.mvc.perform(options("/goals")
+                .header("Access-Control-Request-Method", "GET")
+                .header("Origin", "http://localhost:5000"))
+                .andReturn();
+
+        assertNotEquals(
+                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:5000` for `GET /goals` and it succeeded.",
+                200, result.getResponse().getStatus());
+
+        result = this.mvc.perform(options("/" + UUID.randomUUID())
+                .header("Access-Control-Request-Method", "GET")
+                .header("Origin", "http://localhost:4000"))
+                .andReturn();
+
+        assertNotEquals(
+                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:4000` for a random endpoint, and it succeeded.",
+                200, result.getResponse().getStatus());
     }
 
     private <T extends Filter> T getFilter(Class<T> filterClass) {
