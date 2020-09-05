@@ -246,7 +246,89 @@ public class Module4_Tests {
     }
 
     @Test
-    public void task_1() {
+    public void task_1() throws Exception {
+        _task_1();
+        // add oauth2ResourceServer DSL call
+
+        String token = this.authz.token("user", "goal:read");
+        MvcResult result = this.mvc.perform(get("/goals")
+                .header("Authorization", "Bearer " + token))
+                .andReturn();
+        assertNotEquals(
+                "Task 1: Make sure that you've configured the application to use Bearer token authentication by adding the appropriate " +
+                        "oauth2ResourceServer call to the Spring Security DSL in `GoalsApplication`",
+                401, result.getResponse().getStatus());
+        // until we add scopes, this will be a 403; after we add scopes, it'll be a 200. But it will never been a 401.
+
+        this.authz.revoke(token);
+    }
+
+    @Test
+    public void task_2() throws Exception {
+        task_1();
+        // Add JwtAuthenticationConverter
+
+        assertNotNull(
+                "Task 2: Make sure to publish an instance of `Converter<Jwt, AbstractAuthenticationToken>` into the application context",
+                this.jwtAuthenticationConverter);
+
+        String token = this.authz.token("user", "goal:read");
+        Authentication authentication = getAuthentication(token);
+        assertFalse(
+                "Task 2: For a token with a scope of `goal:read`, `JwtAuthenticationConverter` returned no scopes back",
+                authentication.getAuthorities().isEmpty());
+        assertEquals(
+                "Task 2: For a token with a scope of `goal:read`, a `GrantedAuthority` of `goal:read` was not returned. " +
+                        "Make sure that you are setting the authority prefix in `JwtGrantedAuthoritiesConverter`",
+                "goal:read", authentication.getAuthorities().iterator().next().getAuthority());
+    }
+
+    @Test
+    public void task_3() throws Exception {
+        _task_3();
+
+        // reconcile with UserRepository using JwtAuthenticationConverter
+
+        assertNotNull(
+                "Task 3: Please make sure that you've supplied an instance of `UserRepositoryJwtAuthenticationConverter` to the Spring Security DSL",
+                this.jwtAuthenticationConverter instanceof UserRepositoryJwtAuthenticationConverter);
+
+        String token = this.authz.token(UUID.randomUUID().toString(), "goal:write");
+        try {
+            getAuthentication(token);
+            fail(
+                    "Task 3: Create a custom `Converter<Jwt, AbstractAuthenticationToken>` that reconciles the `sub` field in the `Jwt` " +
+                            "with what's in the `UserRepository`. If the user isn't there, throw a `UsernameNotFoundException`. " +
+                            "Also, make sure that you've removed the `JwtAuthenticationConverter` `@Bean` definition since this custom one you are writing replaces that.");
+        } catch (UsernameNotFoundException expected) {
+            // ignore
+        }
+    }
+
+    @Test
+    public void task_4() throws Exception {
+        _task_4();
+        // conditionally send user's name in result, based on permission
+
+        ReflectedUser user = new ReflectedUser((User) this.userDetailsService.loadUserByUsername("hasread"));
+        String token = this.authz.token("hasread", "goal:read");
+        Authentication authentication = getAuthentication(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            Iterable<Goal> goals = this.goalController.read();
+            for (Goal goal : goals) {
+                assertFalse(
+                        "Task 4: The `/goal` endpoint appended the user's personal name, even though that permission " +
+                                "was not granted to the client.",
+                        goal.getText().endsWith(user.getFullName()));
+            }
+        } finally {
+            SecurityContextHolder.clearContext();
+            this.authz.revoke(token);
+        }
+    }
+
+    private void _task_1() {
         // add application.yml configuration
         assertTrue("Task 1: Could not find a bean in the application context that will verify the bearer token. " +
                 "Make sure that you are specifying the correct property in `application.yml`", this.jwt != null || this.introspector != null);
@@ -264,46 +346,41 @@ public class Module4_Tests {
         }
     }
 
-    @Test
-    public void task_2() throws Exception {
-        task_1();
-        // add oauth2ResourceServer DSL call
-
-        String token = this.authz.token("user", "goal:read");
-        MvcResult result = this.mvc.perform(get("/goals")
-                .header("Authorization", "Bearer " + token))
-                .andReturn();
-        assertNotEquals(
-                "Task 2: Make sure that you've configured the application to use Bearer token authentication by adding the appropriate " +
-                        "oauth2ResourceServer call to the Spring Security DSL in `GoalsApplication`",
-                401, result.getResponse().getStatus());
-        // until we add scopes, this will be a 403; after we add scopes, it'll be a 200. But it will never been a 401.
-
-        this.authz.revoke(token);
-    }
-
-    @Test
-    public void task_3() throws Exception {
+    private void _task_3() throws Exception {
         task_2();
-        // Add JwtAuthenticationConverter
+        // custom authentication token
 
-        assertNotNull(
-                "Task 3: Make sure to publish an instance of `JwtAuthenticationConverter` as a `@Bean`",
-                this.jwtAuthenticationConverter);
-
-        String token = this.authz.token("user", "goal:read");
+        String token = this.authz.token("hasread", "goal:read");
         Authentication authentication = getAuthentication(token);
-        assertFalse(
-                "Task 3: For a token with a scope of `goal:read`, `JwtAuthenticationConverter` returned no scopes back",
-                authentication.getAuthorities().isEmpty());
+        assertTrue(
+                "Task 3: Make sure that you've correctly mapped a `User` to an `OAuth2AuthenticatedPrincipal`.",
+                authentication instanceof BearerTokenAuthentication);
+        this.authz.revoke(token);
+
+        // merge scopes and roles
+
+        String mismatch = this.authz.token("hasread", "goal:write"); // client grants, but user doesn't have
+        MvcResult result = this.mvc.perform(post("/goal")
+                .content("my goal")
+                .header("Authorization", "Bearer " + mismatch))
+                .andReturn();
         assertEquals(
-                "Task 3: For a token with a scope of `goal:read`, a `GrantedAuthority` of `goal:read` was not returned. " +
-                        "Make sure that you are setting the authority prefix in `JwtGrantedAuthoritiesConverter`",
-                "goal:read", authentication.getAuthorities().iterator().next().getAuthority());
+                "Task 3: Client successfully wrote a goal for `hasread`, even though `hasread` doesn't have that authority. " +
+                        "Make sure that the scopes in the `Jwt` are only granted if the user actually has that authority",
+                403, result.getResponse().getStatus());
+        this.authz.revoke(mismatch);
+        String missing = this.authz.token("hasread"); // client doesn't grant
+        result = this.mvc.perform(get("/goals")
+                .header("Authorization", "Bearer " + missing))
+                .andReturn();
+        assertEquals(
+                "Task 3: Client successfully read a goal for `hasread`, even though `hasread` didn't grant it that permission. " +
+                        "Make sure that the scopes in the `Jwt` are only granted if the user grants that authority to the client.",
+                403, result.getResponse().getStatus());
+        this.authz.revoke(missing);
     }
 
-    @Test
-    public void task_4() throws Exception {
+    private void _task_4() throws Exception {
         task_3();
 
         Field nameField = getDeclaredFieldByColumnName(User.class, "full_name");
@@ -338,90 +415,6 @@ public class Module4_Tests {
             SecurityContextHolder.clearContext();
             this.authz.revoke(token);
         }
-    }
-
-    @Test
-    public void task_5() throws Exception {
-        task_4();
-        // conditionally send user's name in result, based on permission
-
-        ReflectedUser user = new ReflectedUser((User) this.userDetailsService.loadUserByUsername("hasread"));
-        String token = this.authz.token("hasread", "goal:read");
-        Authentication authentication = getAuthentication(token);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        try {
-            Iterable<Goal> goals = this.goalController.read();
-            for (Goal goal : goals) {
-                assertFalse(
-                        "Task 5: The `/goal` endpoint appended the user's personal name, even though that permission " +
-                                "was not granted to the client.",
-                        goal.getText().endsWith(user.getFullName()));
-            }
-        } finally {
-            SecurityContextHolder.clearContext();
-            this.authz.revoke(token);
-        }
-    }
-
-    @Test
-    public void task_6() throws Exception {
-        task_5();
-
-        // reconcile with UserRepository using JwtAuthenticationConverter
-
-        assertNotNull(
-                "Task 6: Please make sure that you've supplied an instance of `UserRepositoryJwtAuthenticationConverter` to the Spring Security DSL",
-                this.jwtAuthenticationConverter instanceof UserRepositoryJwtAuthenticationConverter);
-
-        String token = this.authz.token(UUID.randomUUID().toString(), "goal:write");
-        try {
-            getAuthentication(token);
-            fail(
-                    "Task 6: Create a custom `Converter<Jwt, AbstractAuthenticationToken>` that reconciles the `sub` field in the `Jwt` " +
-                            "with what's in the `UserRepository`. If the user isn't there, throw a `UsernameNotFoundException`. " +
-                            "Also, make sure that you've removed the `JwtAuthenticationConverter` `@Bean` definition since this custom one you are writing replaces that.");
-        } catch (UsernameNotFoundException expected) {
-            // ignore
-        }
-    }
-
-    @Test
-    public void task_7() throws Exception {
-        task_6();
-        // custom authentication token
-
-        String token = this.authz.token("hasread", "goal:read");
-        Authentication authentication = getAuthentication(token);
-        assertTrue(
-                "Task 7: Make sure that you've correctly mapped a `User` to an `OAuth2AuthenticatedPrincipal`.",
-                authentication instanceof BearerTokenAuthentication);
-        this.authz.revoke(token);
-    }
-
-    @Test
-    public void task_8() throws Exception {
-        task_7();
-        // merge scopes and roles
-
-        String mismatch = this.authz.token("hasread", "goal:write"); // client grants, but user doesn't have
-        MvcResult result = this.mvc.perform(post("/goal")
-                .content("my goal")
-                .header("Authorization", "Bearer " + mismatch))
-                .andReturn();
-        assertEquals(
-                "Task 8: Client successfully wrote a goal for `hasread`, even though `hasread` doesn't have that authority. " +
-                        "Make sure that the scopes in the `Jwt` are only granted if the user actually has that authority",
-                403, result.getResponse().getStatus());
-        this.authz.revoke(mismatch);
-        String missing = this.authz.token("hasread"); // client doesn't grant
-        result = this.mvc.perform(get("/goals")
-                .header("Authorization", "Bearer " + missing))
-                .andReturn();
-        assertEquals(
-                "Task 7: Client successfully read a goal for `hasread`, even though `hasread` didn't grant it that permission. " +
-                        "Make sure that the scopes in the `Jwt` are only granted if the user grants that authority to the client.",
-                403, result.getResponse().getStatus());
-        this.authz.revoke(missing);
     }
 
     private Authentication getAuthentication(String token) {
