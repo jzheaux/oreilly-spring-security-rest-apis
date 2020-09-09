@@ -31,8 +31,9 @@ public class UserRepositoryOpaqueTokenIntrospector
 		Collection<GrantedAuthority> authorities = user.getUserAuthorities().stream()
 				.map(userAuthority -> new SimpleGrantedAuthority(userAuthority.authority))
 				.collect(Collectors.toList());
-		Collection<GrantedAuthority> scopes = principal.getAuthorities().stream()
-				.map(scope -> new SimpleGrantedAuthority(scope.getAuthority().substring(6)))
+		Collection<String> scope = principal.getAttribute("scope");
+		Collection<GrantedAuthority> scopes = scope.stream()
+				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 		authorities.retainAll(scopes);
 
