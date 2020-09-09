@@ -1,5 +1,6 @@
 package io.jzheaux.springsecurity.goals;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
@@ -46,6 +47,7 @@ class AuthorizationServer extends Dispatcher implements AutoCloseable {
     private Map<String, JWT> tokens = new HashMap<>();
     private Map<String, Function<RecordedRequest, MockResponse>> responses = new HashMap<>();
     private MockWebServer web = new MockWebServer();
+    private ObjectMapper mapper = new ObjectMapper();
 
     AuthorizationServer() {
         try {
@@ -72,8 +74,8 @@ class AuthorizationServer extends Dispatcher implements AutoCloseable {
                         .map(parameters -> parameters.get("token"))
                         .map(this.tokens::get)
                         .filter(this::isActive)
-                        .map(this::toMap)
-                        .map(jsonObject -> response(jsonObject.toString(), 200))
+                        .map(this::withActive)
+                        .map(jsonObject -> response(jsonObject, 200))
                         .orElse(response(new JSONObject(Collections.singletonMap("active", false)).toString(), 200))
         );
     }
@@ -166,11 +168,11 @@ class AuthorizationServer extends Dispatcher implements AutoCloseable {
         }
     }
 
-    private JSONObject toMap(JWT jwt) {
+    private String withActive(JWT jwt) {
         try {
-            JSONObject claims = jwt.getJWTClaimsSet().toJSONObject();
+            Map<String, Object> claims = jwt.getJWTClaimsSet().toJSONObject();
             claims.put("active", true);
-            return claims;
+            return this.mapper.writeValueAsString(claims);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
