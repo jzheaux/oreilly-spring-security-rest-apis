@@ -111,6 +111,10 @@
 
 	<repositories>
 		<repository>
+			<id>snapshots</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+		<repository>
 			<id>milestones</id>
 			<url>https://repo.spring.io/libs-milestone</url>
 		</repository>
