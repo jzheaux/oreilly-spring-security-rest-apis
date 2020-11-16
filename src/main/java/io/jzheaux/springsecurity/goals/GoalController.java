@@ -26,16 +26,14 @@ public class GoalController {
 	public Iterable<Goal> read() {
 		Iterable<Goal> goals = this.goals.findAll();
 		for (Goal goal : goals) {
-			String name = this.users.findByUsername(goal.getOwner())
-					.map(User::getFullName).orElse("none");
-			goal.setText(goal.getText() + ", by " + name);
+			addName(goal);
 		}
 		return goals;
 	}
 
 	@GetMapping("/goal/{id}")
 	public Optional<Goal> read(@PathVariable("id") UUID id) {
-		return this.goals.findById(id);
+		return this.goals.findById(id).map(this::addName);
 	}
 
 	@PostMapping("/goal")
@@ -69,6 +67,13 @@ public class GoalController {
 				make(text);
 			}
 		});
+		return goal;
+	}
+
+	private Goal addName(Goal goal) {
+		String name = this.users.findByUsername(goal.getOwner())
+				.map(User::getFullName).orElse("none");
+		goal.setText(goal.getText() + ", by " + name);
 		return goal;
 	}
 }
