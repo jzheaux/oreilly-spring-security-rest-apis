@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 public class SpaApplication {
 	@Bean
 	public TomcatConnectorCustomizer connectorCustomizer() {
-		return container -> container.setPort(4000);
+		return container -> container.setPort(8081);
 	}
 
 	@Configuration
