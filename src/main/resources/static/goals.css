@@ -1,0 +1,22 @@
+nav {
+    background: #0356DC;
+    margin-bottom: 30px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    color: white;
+}
+
+#logout a {
+    line-height: 60px;
+    color: white;
+}
+
+#logout a:hover {
+    cursor:pointer;
+}
+
+.completed {
+    text-decoration: line-through;
+    color: lightgray;
+}

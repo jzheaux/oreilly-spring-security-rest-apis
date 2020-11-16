@@ -1,29 +1,38 @@
 <html>
-    <head>
-        <script
-                src="https://code.jquery.com/jquery-3.4.1.min.js"
-                integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-                crossorigin="anonymous"></script>
-        <script
-                src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-        <script type="application/javascript">
-            var goals = function() {
-                $.ajax({
-                    url: "http://localhost:8080/goals",
-                    xhrFields: {
-                        withCredentials: true
-                    }
-                })
-                .done(function( data ) {
-                    $("#goals").html(JSON.stringify(data, null, "\t"));
-                });
-            };
+<head>
+    <script type="application/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.css"/>
+    <script type="application/javascript" src="/webjars/bootstrap/js/bootstrap.js"></script>
 
-            $(document).ready(function() {
-                $("#show").click(goals)
-            });
-        </script>
-    </head>
-    <p><button id="show">Goals</button></p>
-    <pre id="goals"></pre>
+    <link rel="stylesheet" type="text/css" href="/goals.css"/>
+    <script type="application/javascript" src="/goals.js"></script>
+    <script type="application/javascript" src="/basic.js"></script>
+    <script type="application/javascript">
+        $(document).ready(ready);
+    </script>
+</head>
+<body>
+<div class="container-fluid">
+    <nav class="row">
+        <h1 class="col-11 align-middle">Goal Keeper</h1>
+        <div id="logout" class="col-1 align-middle" style="display:inline">
+            <form action="/logout" method="post">
+                <input type="hidden" name="_csrf"/>
+                <a>Logout</a>
+            </form>
+        </div>
+    </nav>
+</div>
+<div id="app" class="container">
+    <div class="row">
+        <h2 id="welcome" style="display:inline">Goals</h2>
+    </div>
+    <ul id="goals" class="list-group row">
+    </ul>
+    <div id="new" class="row">
+        <input placeholder="Make a goal" class="col-9"/>
+        <button class="col-3">Make</button>
+    </div>
+</div>
+</body>
 </html>
