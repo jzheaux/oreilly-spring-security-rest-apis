@@ -64,7 +64,7 @@ public class GoalController {
 		goal.filter(r -> r.getOwner().equals(user.getUsername()))
 				.map(Goal::getText).ifPresent(text -> {
 			for (User friend : user.getFriends()) {
-				make(text);
+				this.goals.save(new Goal(text, friend.getUsername()));
 			}
 		});
 		return goal;
