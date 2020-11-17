@@ -386,7 +386,7 @@ public class Module2_Tests {
 					"Task 3: The `/goal/{id}/revise` endpoint failed to revise a goal that belonged to `haswrite`. " +
 							"Please double-check your `@Query` expression",
 					this.repository.findById(this.haswriteGoal.getId())
-							.filter(goal -> goal.getText().equals("has write test revised"))
+							.filter(goal -> goal.getText().contains("has write test revised"))
 							.isPresent());
 		}
 
