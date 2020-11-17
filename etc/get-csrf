@@ -1,0 +1,11 @@
+shopt -s extglob # Required to trim whitespace; see below
+
+while IFS=':' read key value; do
+    # trim whitespace in "value"
+    value=${value##+([[:space:]])}; value=${value%%+([[:space:]])}
+
+    case "$key" in
+        X-CSRF-TOKEN) export CSRF="$value"
+                ;;
+     esac
+done < <(http --print=h --session=./session.json -a user:password :8080/goals)
