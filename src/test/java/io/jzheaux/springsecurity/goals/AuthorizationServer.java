@@ -32,10 +32,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class AuthorizationServer extends Dispatcher implements AutoCloseable {
-    private static final String ISSUER_PATH = "/auth/realms/one";
+    private static final String ISSUER_PATH = "/oauth2";
     private static final String CONFIGURATION_PATH = "/.well-known/openid-configuration";
-    private static final String JWKS_PATH = "/protocol/openid-connect/certs";
-    private static final String INTROSPECTION_PATH = "/protocol/openid-connect/token/introspect";
+    private static final String JWKS_PATH = "/jwks";
+    private static final String INTROSPECTION_PATH = "/introspect";
 
     private static final MockResponse NOT_FOUND_RESPONSE = response(
             "{ \"message\" : \"This mock authorization server responds only to [" +
@@ -139,6 +139,10 @@ class AuthorizationServer extends Dispatcher implements AutoCloseable {
 
     String issuer() {
         return this.web.url(ISSUER_PATH).toString();
+    }
+
+    String jwkSetUri() {
+        return this.web.url(ISSUER_PATH + JWKS_PATH).toString();
     }
 
     String introspectionUri() {

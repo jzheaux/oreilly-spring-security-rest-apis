@@ -35,6 +35,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.introspection.NimbusOpaqueTokenIntrospector;
@@ -167,16 +168,16 @@ public class Module4_Tests {
             this.server.stop();
         }
 
-        @ConditionalOnProperty("spring.security.oauth2.resourceserver.jwt.issuer-uri")
+        @ConditionalOnProperty("spring.security.oauth2.resourceserver.jwt.jwk-set-uri")
         @Bean
         JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
-            return JwtDecoders.fromOidcIssuerLocation(this.server.issuer());
+            return NimbusJwtDecoder.withJwkSetUri(this.server.jwkSetUri()).build();
         }
 
         @ConditionalOnProperty("spring.security.oauth2.resourceserver.opaquetoken.introspection-uri")
         @Bean
         JwtDecoder interrim() {
-            return JwtDecoders.fromOidcIssuerLocation(this.server.issuer());
+            return NimbusJwtDecoder.withJwkSetUri(this.server.jwkSetUri()).build();
         }
 
         @ConditionalOnProperty("spring.security.oauth2.resourceserver.opaquetoken.introspection-uri")
