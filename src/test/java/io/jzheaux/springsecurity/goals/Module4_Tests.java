@@ -71,8 +71,8 @@ public class Module4_Tests {
     @Autowired
     MockMvc mvc;
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:#{null}}")
-    String issuerUri;
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:#{null}}")
+    String jwkSetUri;
 
     @Value("${spring.security.oauth2.resourceserver.opaquetoken.introspection-uri:#{null}}")
     String introspectionUrl;
@@ -334,15 +334,15 @@ public class Module4_Tests {
                 "Make sure that you are specifying the correct property in `application.yml`", this.jwt != null || this.introspector != null);
 
         if (this.introspector != null) {
-            String introspectionUrl = "http://localhost:9999/auth/realms/one/protocol/openid-connect/token/introspect";
+            String introspectionUrl = "http://idp:8083/oauth2/introspect";
             assertEquals(
                     "Task 1: Make sure that the `introspection-uri` property is set to `" + introspectionUrl + "`",
                     introspectionUrl, this.introspectionUrl);
         } else {
-            String issuerUri = "http://localhost:9999/auth/realms/one";
+            String jwkSetUri = "http://idp:8083/oauth2/jwks";
             assertEquals(
-                    "Task 1: Make sure that the `issuer-uri` property is set to `" + issuerUri + "`",
-                    issuerUri, this.issuerUri);
+                    "Task 1: Make sure that the `jwk-set-uri` property is set to `" + jwkSetUri + "`",
+                    jwkSetUri, this.jwkSetUri);
         }
     }
 

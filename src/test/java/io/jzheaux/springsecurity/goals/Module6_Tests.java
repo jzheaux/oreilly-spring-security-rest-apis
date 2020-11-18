@@ -253,22 +253,22 @@ public class Module6_Tests {
 		MvcResult result = this.mvc.perform(options("/goals")
 				.header("Access-Control-Request-Method", "GET")
 				.header("Access-Control-Allow-Credentials", "true")
-				.header("Origin", "http://localhost:4000"))
+				.header("Origin", "http://localhost:8081"))
 				.andReturn();
 
 		assertNull(
-				"Task 1: Did an `OPTIONS` pre-flight request from `http://localhost:4000` for `GET /goals`, and it is allowing credentials;" +
+				"Task 1: Did an `OPTIONS` pre-flight request from `http://localhost:8081` for `GET /goals`, and it is allowing credentials;" +
 						"this should be shut off now that you are using Bearer Token authentication",
 				result.getResponse().getHeader("Access-Control-Allow-Credentials"));
 /*
 		result = this.mvc.perform(options("/" + UUID.randomUUID())
 				.header("Access-Control-Request-Method", "HEAD")
 				.header("Access-Control-Allow-Credentials", "true")
-				.header("Origin", "http://localhost:4000"))
+				.header("Origin", "http://localhost:8081"))
 				.andReturn();
 
 		assertNull(
-				"Task 1: Did an `OPTIONS` pre-flight request from `http://localhost:4000` for a random endpoint, and it is allowing credentials;" +
+				"Task 1: Did an `OPTIONS` pre-flight request from `http://localhost:8081` for a random endpoint, and it is allowing credentials;" +
 						"this should be shut off now that you are using Bearer Token authentication",
 				result.getResponse().getHeader("Access-Control-Allow-Credentials"));*/
 	}
@@ -297,8 +297,8 @@ public class Module6_Tests {
 				this.userService);
 
 		assertEquals(
-				"Task 2: The `WebClient` should be set to have a `baseUrl` of `http://localhost:8081`",
-				"http://localhost:8081", WebClientPostProcessor.userBaseUrl);
+				"Task 2: The `WebClient` should be set to have a `baseUrl` of `http://localhost:8080`",
+				"http://localhost:8080", WebClientPostProcessor.userBaseUrl);
 
 		String name = this.userService.getFullName("user")
 				.orElseGet(() -> fail("Task 2: `UserService#getFullName` returned no results for username `user`. " +
@@ -331,7 +331,7 @@ public class Module6_Tests {
 					this.userEndpoint.getRequestCount() > count);
 			for (Goal goal : goals) {
 				assertTrue(
-						"Task 4: The `/goals` endpoint didn't append the user's personal name in the reslution text.",
+						"Task 4: The `/goals` endpoint didn't append the user's personal name in the resolution text.",
 						goal.getText().endsWith("User Userson"));
 			}
 		} finally {

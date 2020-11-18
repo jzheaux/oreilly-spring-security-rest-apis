@@ -132,19 +132,19 @@ public class Module3_Tests {
         MvcResult result = this.mvc.perform(options("/goals")
                 .header("Access-Control-Request-Method", "GET")
                 .header("Access-Control-Allow-Credentials", "true")
-                .header("Origin", "http://localhost:4000"))
+                .header("Origin", "http://localhost:8081"))
                 .andReturn();
 
         if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
             assertEquals(
-                    "Task 4: Tried to do an `OPTIONS` pre-flight request from `http://localhost:4000` for `GET /goals` failed.",
+                    "Task 4: Tried to do an `OPTIONS` pre-flight request from `http://localhost:8081` for `GET /goals` failed.",
                     "true", result.getResponse().getHeader("Access-Control-Allow-Credentials"));
         }
 
         result = this.mvc.perform(options("/" + UUID.randomUUID())
                 .header("Access-Control-Request-Method", "HEAD")
                 .header("Access-Control-Allow-Credentials", "true")
-                .header("Origin", "http://localhost:4000"))
+                .header("Origin", "http://localhost:8081"))
                 .andReturn();
 
         if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
@@ -179,19 +179,19 @@ public class Module3_Tests {
                 "Task 3: Make sure that globally you are only allowing the `Authorization` header",
                 "Authorization", configuration.getAllowedHeaders().get(0));
         assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `http://localhost:4000` origin",
+                "Task 3: Make sure that globally you are only allowing the `http://localhost:8081` origin",
                 1, configuration.getAllowedOrigins().size());
         assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `http://localhost:4000` origin",
-                "http://localhost:4000", configuration.getAllowedOrigins().get(0));
+                "Task 3: Make sure that globally you are only allowing the `http://localhost:8081` origin",
+                "http://localhost:8081", configuration.getAllowedOrigins().get(0));
 
         MvcResult result = this.mvc.perform(options("/goals")
                 .header("Access-Control-Request-Method", "GET")
-                .header("Origin", "http://localhost:4000"))
+                .header("Origin", "http://localhost:8081"))
                 .andReturn();
 
         assertEquals(
-                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:4000` for `GET /goals` failed.",
+                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:8081` for `GET /goals` failed.",
                 200, result.getResponse().getStatus());
 
         result = this.mvc.perform(options("/goals")
@@ -205,11 +205,11 @@ public class Module3_Tests {
 
         result = this.mvc.perform(options("/" + UUID.randomUUID())
                 .header("Access-Control-Request-Method", "GET")
-                .header("Origin", "http://localhost:4000"))
+                .header("Origin", "http://localhost:8081"))
                 .andReturn();
 
         assertNotEquals(
-                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:4000` for a random endpoint, and it succeeded.",
+                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:8081` for a random endpoint, and it succeeded.",
                 200, result.getResponse().getStatus());
     }
 

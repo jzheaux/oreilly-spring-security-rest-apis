@@ -246,7 +246,7 @@ public class Module5_Tests {
                 "Make sure that you are specifying the correct property in `application.yml`",
                 this.introspector);
 
-        String introspectionUrl = "http://localhost:9999/auth/realms/one/protocol/openid-connect/token/introspect";
+        String introspectionUrl = "http://idp:8083/oauth2/introspect";
         assertEquals(
                 "Task 1: Make sure that the `introspection-uri` property is set to `" + introspectionUrl + "`",
                 introspectionUrl, this.introspectionUrl);

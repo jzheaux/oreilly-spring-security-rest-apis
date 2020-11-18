@@ -57,6 +57,7 @@ public class AuthorizationServerConfig {
 				.redirectUri("http://localhost:8081/bearer.html")
 				.scope("goal:read")
 				.scope("goal:write")
+				.scope("user:read")
 				.clientSettings((settings) -> settings.requireUserConsent(true))
 				.build();
 		return new InMemoryRegisteredClientRepository(registeredClient);

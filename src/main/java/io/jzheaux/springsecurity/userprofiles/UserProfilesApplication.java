@@ -14,7 +14,7 @@ import java.util.Optional;
 public class UserProfilesApplication {
 	@Bean
 	public TomcatConnectorCustomizer connectorCustomizer() {
-		return container -> container.setPort(8081);
+		return container -> container.setPort(8082);
 	}
 
 	@RestController
