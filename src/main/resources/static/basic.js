@@ -1,5 +1,4 @@
 $(document).ajaxSend((event, xhr) => {
-    xhr.withCredentials = true;
     if (security.csrf.value) {
         xhr.setRequestHeader(security.csrf.header, security.csrf.value);
     }
@@ -7,6 +6,12 @@ $(document).ajaxSend((event, xhr) => {
 
 $(document).ajaxSuccess((event, xhr) => {
     security.success(xhr);
+});
+
+$.ajaxSetup({
+    xhrFields: {
+        withCredentials: true
+    }
 });
 
 const security = {
