@@ -20,12 +20,12 @@ public class UserRepositoryJwtAuthenticationConverter
 		implements Converter<Jwt, AbstractAuthenticationToken> {
 
 	private final UserRepository users;
-	private final JwtGrantedAuthoritiesConverter authoritiesConverter =
-			new JwtGrantedAuthoritiesConverter();
+	private final JwtGrantedAuthoritiesConverter authoritiesConverter;
 
-	public UserRepositoryJwtAuthenticationConverter(UserRepository users) {
+	public UserRepositoryJwtAuthenticationConverter(
+			UserRepository users, JwtGrantedAuthoritiesConverter authoritiesConverter) {
 		this.users = users;
-		this.authoritiesConverter.setAuthorityPrefix("");
+		this.authoritiesConverter = authoritiesConverter;
 	}
 
 	@Override
