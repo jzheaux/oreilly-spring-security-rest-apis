@@ -113,7 +113,7 @@ public class Module3_Tests {
         CorsFilter filter = getFilter(CorsFilter.class);
         assertNotNull(
                 "Task 2: It doesn't appear that `cors()` is being called on the `HttpSecurity` object. If it is, make " +
-                "sure that `GoalsApplication` is extending `WebSecurityConfigurerAdapter` and is overriding `configure(HttpSecurity http)`",
+                        "sure that `GoalsApplication` is extending `WebSecurityConfigurerAdapter` and is overriding `configure(HttpSecurity http)`",
                 filter);
     }
 
