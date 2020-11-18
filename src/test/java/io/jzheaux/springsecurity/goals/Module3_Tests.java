@@ -36,6 +36,7 @@ import static io.jzheaux.springsecurity.goals.ReflectionSupport.annotation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 
 @RunWith(SpringRunner.class)
@@ -96,18 +97,8 @@ public class Module3_Tests {
 
     }
 
-    private void _task_1() {
-        // add @CrossOrigin
-
-        CrossOrigin crossOrigin = annotation(CrossOrigin.class, "read");
-        assertNotNull(
-                "Task 1: Please add the `@CrossOrigin` annotation to the `GoalController#read` method",
-                crossOrigin);
-    }
-
     @Test
-    public void task_1() {
-        _task_1();
+    public void task_1() throws Exception {
         // cors()
 
         CorsFilter filter = getFilter(CorsFilter.class);
@@ -115,102 +106,52 @@ public class Module3_Tests {
                 "Task 2: It doesn't appear that `cors()` is being called on the `HttpSecurity` object. If it is, make " +
                         "sure that `GoalsApplication` is extending `WebSecurityConfigurerAdapter` and is overriding `configure(HttpSecurity http)`",
                 filter);
+
+        CorsConfiguration configuration = this.cors.getCorsConfiguration
+                (new MockHttpServletRequest("GET", "/" + UUID.randomUUID()));
+        if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
+            MockHttpServletRequest request = new MockHttpServletRequest("GET", "/goals");
+            assertTrue("Task 1: So that HTTP Basic works in the browser for this request, set the `allowCredentials` property to `\"true\"`",
+                    configuration.getAllowCredentials());
+        }
+
+
+        assertNotNull(
+                "Task 1: Make sure that you've added a mapping for all endpoints by calling `addMapping(\"/**\")`'",
+                configuration);
+        assertEquals(
+                "Task 1: Make sure that globally you are only allowing the `http://localhost:8081` origin",
+                1, configuration.getAllowedOrigins().size());
+        assertEquals(
+                "Task 1: Make sure that globally you are only allowing the `http://localhost:8081` origin",
+                "http://localhost:8081", configuration.getAllowedOrigins().get(0));
+
+        MvcResult result = this.mvc.perform(options("/goals")
+                .header("Access-Control-Request-Method", "GET")
+                .header("Access-Control-Allow-Credentials", "true")
+                .header("Origin", "http://localhost:8081"))
+                .andReturn();
+
+        if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
+            assertEquals(
+                    "Task 1: Tried to do an `OPTIONS` pre-flight request from `http://localhost:8081` for `GET /goals` failed.",
+                    "true", result.getResponse().getHeader("Access-Control-Allow-Credentials"));
+        }
     }
 
     @Test
     public void task_2() throws Exception {
         task_1();
-
-        CrossOrigin crossOrigin = annotation(CrossOrigin.class, "read");
-        if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
-            assertEquals(
-                    "Task 4: So that HTTP Basic works in the browser for this request, set the `allowCredentials` property on the `@CrossOrigin` annotation to `\"true\"`",
-                    "true", crossOrigin.allowCredentials()
-            );
-        }
-
-        MvcResult result = this.mvc.perform(options("/goals")
-                .header("Access-Control-Request-Method", "GET")
-                .header("Access-Control-Allow-Credentials", "true")
-                .header("Origin", "http://localhost:8081"))
-                .andReturn();
-
-        if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
-            assertEquals(
-                    "Task 4: Tried to do an `OPTIONS` pre-flight request from `http://localhost:8081` for `GET /goals` failed.",
-                    "true", result.getResponse().getHeader("Access-Control-Allow-Credentials"));
-        }
-
-        result = this.mvc.perform(options("/" + UUID.randomUUID())
-                .header("Access-Control-Request-Method", "HEAD")
-                .header("Access-Control-Allow-Credentials", "true")
-                .header("Origin", "http://localhost:8081"))
-                .andReturn();
-
-        if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
-            assertNotEquals(
-                    "Task 4: Tried to do an `OPTIONS` pre-flight request for a random endpoint, asking to send credentials, and it succeeded. " +
-                            "Make sure that you haven't allowed credentials globally.",
-                    "true", result.getResponse().getHeader("Access-Control-Allow-Credentials"));
-        }
-    }
-
-    @Test
-    public void task_3() throws Exception {
-        task_2();
-        // global settings
+        // csrf
 
         CorsConfiguration configuration = this.cors.getCorsConfiguration
                 (new MockHttpServletRequest("GET", "/" + UUID.randomUUID()));
-
-        assertNotNull(
-                "Task 3: Make sure that you've added a mapping for all endpoints by calling `addMapping(\"/**\")`'",
-                configuration);
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing `HEAD`",
-                1, configuration.getAllowedMethods().size());
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing `HEAD`",
-                "HEAD", configuration.getAllowedMethods().get(0));
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `Authorization` header",
-                1, configuration.getAllowedHeaders().size());
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `Authorization` header",
-                "Authorization", configuration.getAllowedHeaders().get(0));
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `http://localhost:8081` origin",
-                1, configuration.getAllowedOrigins().size());
-        assertEquals(
-                "Task 3: Make sure that globally you are only allowing the `http://localhost:8081` origin",
-                "http://localhost:8081", configuration.getAllowedOrigins().get(0));
-
-        MvcResult result = this.mvc.perform(options("/goals")
-                .header("Access-Control-Request-Method", "GET")
-                .header("Origin", "http://localhost:8081"))
-                .andReturn();
-
-        assertEquals(
-                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:8081` for `GET /goals` failed.",
-                200, result.getResponse().getStatus());
-
-        result = this.mvc.perform(options("/goals")
-                .header("Access-Control-Request-Method", "GET")
-                .header("Origin", "http://localhost:5000"))
-                .andReturn();
-
-        assertNotEquals(
-                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:5000` for `GET /goals` and it succeeded.",
-                200, result.getResponse().getStatus());
-
-        result = this.mvc.perform(options("/" + UUID.randomUUID())
-                .header("Access-Control-Request-Method", "GET")
-                .header("Origin", "http://localhost:8081"))
-                .andReturn();
-
-        assertNotEquals(
-                "Task 3: Tried to do an `OPTIONS` pre-flight request from `http://localhost:8081` for a random endpoint, and it succeeded.",
-                200, result.getResponse().getStatus());
+        assertTrue(
+                "Task 2: Make sure that you are both allowing and exposing the X-CSRF-TOKEN header",
+                configuration.getAllowedHeaders().contains("X-CSRF-TOKEN"));
+        assertTrue(
+                "Task 2: Make sure that you are both allowing and exposing the X-CSRF-TOKEN header",
+                configuration.getExposedHeaders().contains("X-CSRF-TOKEN"));
     }
 
     private <T extends Filter> T getFilter(Class<T> filterClass) {
