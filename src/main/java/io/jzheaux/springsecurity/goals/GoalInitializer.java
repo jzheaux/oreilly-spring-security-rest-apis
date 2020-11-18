@@ -18,6 +18,7 @@ public class GoalInitializer implements SmartInitializingSingleton {
 		this.goals.save(new Goal("Read War and Peace", "user"));
 		this.goals.save(new Goal("Free Solo the Eiffel Tower", "user"));
 		this.goals.save(new Goal("Hang Christmas Lights", "user"));
+		this.goals.save(new Goal("March to the Beat of My Own Drum", "hasread"));
 
 		User user = new User("user", "{bcrypt}$2a$10$3njzOWhsz20aimcpMamJhOnX9Pb4Nk3toq8OO0swIy5EPZnb1YyGe");
 		user.setFullName("User Userson");
