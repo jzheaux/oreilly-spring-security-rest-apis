@@ -1,2 +1,4 @@
-find -name "*.java" -exec sed -i -E "s/localhost:([0-9]{4})/$1-\1-$2.environments.katacoda.com/g" {} \;
-find -name "*.js" -exec sed -i -E "s/localhost:([0-9]{4})/$1-\1-$2.environments.katacoda.com/g" {} \;
+find -name "*.java" -exec sed -i -E "s/http:\/\/localhost:([0-9]{4})/https:\/\/$1-\1-$2.environments.katacoda.com/g" {} \;
+find -name "*.js" -exec sed -i -E "s/http:\/\/localhost:([0-9]{4})/https:\/\/$1-\1-$2.environments.katacoda.com/g" {} \;
+find -name "*.java" -exec sed -i -E "s/http:\/\/idp:([0-9]{4})/https:\/\/$1-\1-$2.environments.katacoda.com/g" {} \;
+find -name "*.js" -exec sed -i -E "s/http:\/\/idp:([0-9]{4})/https:\/\/$1-\1-$2.environments.katacoda.com/g" {} \;
