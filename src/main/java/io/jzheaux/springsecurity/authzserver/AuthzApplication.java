@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class AuthzApplication {
+
 	@Bean
 	public TomcatConnectorCustomizer connectorCustomizer() {
 		return container -> container.setPort(8083);

@@ -20,6 +20,8 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -29,7 +31,9 @@ public class AuthorizationServerConfig {
 	@Bean
 	@Order(1)
 	SecurityFilterChain oauth2Endpoints(HttpSecurity http) throws Exception {
-		http.cors(Customizer.withDefaults());
+		http
+			.addFilterBefore(new ForwardedHeaderFilter(), LogoutFilter.class)
+			.cors(Customizer.withDefaults());
 		OAuth2AuthorizationServerSecurity.applyDefaultConfiguration(http);
 		return http.build();
 	}
@@ -101,6 +105,7 @@ public class AuthorizationServerConfig {
 	SecurityFilterChain appEndpoints(HttpSecurity http) throws Exception {
 		// @formatter:off
 		http
+			.addFilterBefore(new ForwardedHeaderFilter(), LogoutFilter.class)
 			.authorizeRequests((authz) -> authz.anyRequest().authenticated())
 			.formLogin(Customizer.withDefaults())
 			.oauth2ResourceServer((oauth2) -> oauth2
