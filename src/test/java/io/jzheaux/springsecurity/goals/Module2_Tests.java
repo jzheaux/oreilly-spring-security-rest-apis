@@ -460,10 +460,6 @@ public class Module2_Tests {
 				.map(ReflectedUserAuthority::getAuthority)
 				.collect(Collectors.toList());
 
-		assertFalse(
-				"Task 4: Please remove the `goal:read` and `goal:write` authority from the admin user in the database. " +
-						"Add them via your `UserRepositoryUserDetailsService` instead",
-				userAuthorities.contains("goal:read") || userAuthorities.contains("goal:write"));
 		assertTrue(
 				"Task 4: Please make sure the admin still has the `ROLE_ADMIN` authority in the database",
 				userAuthorities.contains("ROLE_ADMIN"));
