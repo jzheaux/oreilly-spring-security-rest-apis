@@ -47,7 +47,7 @@ public class AuthorizationServerConfig {
 	@Order(1)
 	public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
 		OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-		return http.formLogin(Customizer.withDefaults()).build();
+		return http.cors(Customizer.withDefaults()).formLogin(Customizer.withDefaults()).build();
 	}
 
 	@Bean
@@ -56,7 +56,8 @@ public class AuthorizationServerConfig {
 		// @formatter:off
 		http
 			.addFilterBefore(new ForwardedHeaderFilter(), LogoutFilter.class)
-			.authorizeRequests((authz) -> authz.anyRequest().authenticated())
+			.authorizeRequests((authz) -> authz
+					.mvcMatchers("/error").permitAll().anyRequest().authenticated())
 			.formLogin(Customizer.withDefaults())
 			.oauth2ResourceServer((oauth2) -> oauth2
 					.jwt(Customizer.withDefaults()));
@@ -70,7 +71,7 @@ public class AuthorizationServerConfig {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/oauth2/token")
-						.allowedOrigins("http://localhost:8081")
+						.allowedOrigins("http://127.0.0.1:8081")
 						.maxAge(0);
 			}
 		};
@@ -83,8 +84,9 @@ public class AuthorizationServerConfig {
 				.clientId("goals-client")
 				.clientSecret("secret")
 				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				.clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-				.redirectUri("http://localhost:8081/bearer.html")
+				.redirectUri("http://127.0.0.1:8081/bearer.html")
 				.scope("goal:read")
 				.scope("goal:write")
 				.scope("user:read")

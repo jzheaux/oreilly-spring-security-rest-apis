@@ -253,22 +253,22 @@ public class Module6_Tests {
 		MvcResult result = this.mvc.perform(options("/goals")
 				.header("Access-Control-Request-Method", "GET")
 				.header("Access-Control-Allow-Credentials", "true")
-				.header("Origin", "http://localhost:8081"))
+				.header("Origin", "http://127.0.0.1:8081"))
 				.andReturn();
 
 		assertNull(
-				"Task 1: Did an `OPTIONS` pre-flight request from `http://localhost:8081` for `GET /goals`, and it is allowing credentials;" +
+				"Task 1: Did an `OPTIONS` pre-flight request from `http://127.0.0.1:8081` for `GET /goals`, and it is allowing credentials;" +
 						"this should be shut off now that you are using Bearer Token authentication",
 				result.getResponse().getHeader("Access-Control-Allow-Credentials"));
 /*
 		result = this.mvc.perform(options("/" + UUID.randomUUID())
 				.header("Access-Control-Request-Method", "HEAD")
 				.header("Access-Control-Allow-Credentials", "true")
-				.header("Origin", "http://localhost:8081"))
+				.header("Origin", "http://127.0.0.1:8081"))
 				.andReturn();
 
 		assertNull(
-				"Task 1: Did an `OPTIONS` pre-flight request from `http://localhost:8081` for a random endpoint, and it is allowing credentials;" +
+				"Task 1: Did an `OPTIONS` pre-flight request from `http://127.0.0.1:8081` for a random endpoint, and it is allowing credentials;" +
 						"this should be shut off now that you are using Bearer Token authentication",
 				result.getResponse().getHeader("Access-Control-Allow-Credentials"));*/
 	}
@@ -297,8 +297,8 @@ public class Module6_Tests {
 				this.userService);
 
 		assertEquals(
-				"Task 2: The `WebClient` should be set to have a `baseUrl` of `http://localhost:8080`",
-				"http://localhost:8080", WebClientPostProcessor.userBaseUrl);
+				"Task 2: The `WebClient` should be set to have a `baseUrl` of `http://127.0.0.1:8080`",
+				"http://127.0.0.1:8080", WebClientPostProcessor.userBaseUrl);
 
 		String name = this.userService.getFullName("user")
 				.orElseGet(() -> fail("Task 2: `UserService#getFullName` returned no results for username `user`. " +

@@ -120,21 +120,21 @@ public class Module3_Tests {
                 "Task 1: Make sure that you've added a mapping for all endpoints by calling `addMapping(\"/**\")`'",
                 configuration);
         assertEquals(
-                "Task 1: Make sure that globally you are only allowing the `http://localhost:8081` origin",
+                "Task 1: Make sure that globally you are only allowing the `http://127.0.0.1:8081` origin",
                 1, configuration.getAllowedOrigins().size());
         assertEquals(
-                "Task 1: Make sure that globally you are only allowing the `http://localhost:8081` origin",
-                "http://localhost:8081", configuration.getAllowedOrigins().get(0));
+                "Task 1: Make sure that globally you are only allowing the `http://127.0.0.1:8081` origin",
+                "http://127.0.0.1:8081", configuration.getAllowedOrigins().get(0));
 
         MvcResult result = this.mvc.perform(options("/goals")
                 .header("Access-Control-Request-Method", "GET")
                 .header("Access-Control-Allow-Credentials", "true")
-                .header("Origin", "http://localhost:8081"))
+                .header("Origin", "http://127.0.0.1:8081"))
                 .andReturn();
 
         if (this.jwt == null && this.introspector == null) { // Compatibility with Module 6, which shuts this field off
             assertEquals(
-                    "Task 1: Tried to do an `OPTIONS` pre-flight request from `http://localhost:8081` for `GET /goals` failed.",
+                    "Task 1: Tried to do an `OPTIONS` pre-flight request from `http://127.0.0.1:8081` for `GET /goals` failed.",
                     "true", result.getResponse().getHeader("Access-Control-Allow-Credentials"));
         }
     }

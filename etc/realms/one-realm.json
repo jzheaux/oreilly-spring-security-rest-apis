@@ -403,7 +403,7 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
       "redirectUris": [
-        "http://localhost:8080"
+        "http://127.0.0.1:8080"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -502,7 +502,7 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
       "redirectUris": [
-        "http://localhost:8080"
+        "http://127.0.0.1:8080"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -677,11 +677,11 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
       "redirectUris": [
-        "http://localhost:4000/bearer.html",
-        "http://localhost:4000/silent-check-sso.html"
+        "http://127.0.0.1:4000/bearer.html",
+        "http://127.0.0.1:4000/silent-check-sso.html"
       ],
       "webOrigins": [
-        "http://localhost:4000"
+        "http://127.0.0.1:4000"
       ],
       "notBefore": 0,
       "bearerOnly": false,

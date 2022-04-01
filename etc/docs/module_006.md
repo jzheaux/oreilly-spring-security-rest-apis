@@ -14,6 +14,6 @@ To start up this RESTful application, do:
 ./mvnw spring-boot:run -Dstart-class=io.jzheaux.springsecurity.userprofiles.UserProfilesApplication
 ```
 
-This will start up an application on [http://localhost:8081](http://localhost:8081). It'll be expecting a token from the authorization server, so you'll either need to retrieve one manually or you'll need to connect the goals API to this one (which is what this module is all about).
+This will start up an application on [http://127.0.0.1:8081](http://127.0.0.1:8081). It'll be expecting a token from the authorization server, so you'll either need to retrieve one manually or you'll need to connect the goals API to this one (which is what this module is all about).
 
-At the end of this module, when you go to [http://localhost:4000/bearer.html], the front-end will be talking to `Resolutions`, but also `Resolutions` will be talking to another REST API.
+At the end of this module, when you go to [http://127.0.0.1:4000/bearer.html], the front-end will be talking to `Resolutions`, but also `Resolutions` will be talking to another REST API.

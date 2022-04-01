@@ -10,7 +10,7 @@ To start up the front-end application, run from the root of the project:
 ./mvnw spring-boot:run -Dstart-class=io.jzheaux.springsecurity.spa.SpaApplication
 ```
 
-At that point, a very simple single-page application will be available at [http://localhost:4000/basic.html](http://localhost:4000/basic.html). 
+At that point, a very simple single-page application will be available at [http://127.0.0.1:4000/basic.html](http://127.0.0.1:4000/basic.html). 
 You'll be asked to log in.
 To get the goals to show, click the `Goals` button.
 

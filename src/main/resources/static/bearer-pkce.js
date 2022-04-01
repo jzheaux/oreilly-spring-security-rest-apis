@@ -50,7 +50,7 @@ const pkce = {
         const url = "http://idp:8083/oauth2/authorize" +
             "?response_type=code" +
             "&client_id=goals-client" +
-            "&redirect_uri=http://localhost:8081/bearer.html" +
+            "&redirect_uri=http://127.0.0.1:8081/bearer.html" +
             "&scope=goal:read+goal:write+user:read" +
             "&state=" + state +
             "&code_challenge=" + codeChallenge +
@@ -71,7 +71,7 @@ const pkce = {
             + "&client_id=goals-client"
             + "&code=" + encodeURIComponent(code)
             + "&code_verifier=" + encodeURIComponent(verifier)
-            + "&redirect_uri=http://localhost:8081/bearer.html";
+            + "&redirect_uri=http://127.0.0.1:8081/bearer.html";
         return new Promise((resolve, reject) =>
             $.ajax("http://idp:8083/oauth2/token",
                 {

@@ -8,7 +8,7 @@ const ready = () => {
 };
 
 const goalcontroller = {
-    root: "http://localhost:8080",
+    root: "http://127.0.0.1:8080",
     list : () =>
         $.get(goalcontroller.root + "/goals", (goals) => {
             for (let goal of goals) {
