@@ -29,7 +29,7 @@ public class GoalControllerTests {
     GoalRepository goals;
 
     @Test
-    @WithMockUser(username="josh")
+    @WithMockUser(username="josh", authorities = "goal:write")
     public void makeWhenGoalThenIncludesUser() throws Exception {
         when(this.goals.save(any())).thenAnswer((parameters) -> parameters.getArgument(0));
         this.mvc.perform(post("/goal")
