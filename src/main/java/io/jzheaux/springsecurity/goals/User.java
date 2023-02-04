@@ -14,7 +14,7 @@ import java.util.UUID;
 @Entity(name="users")
 public class User implements Serializable {
 	@Id
-	UUID id;
+	String id;
 
 	@Column
 	String username;
@@ -40,7 +40,7 @@ public class User implements Serializable {
 	User() {}
 
 	User(String username, String password) {
-		this.id = UUID.randomUUID();
+		this.id = UUID.randomUUID().toString();
 		this.username = username;
 		this.password = password;
 	}
@@ -56,11 +56,11 @@ public class User implements Serializable {
 		this.userAuthorities = user.userAuthorities;
 	}
 
-	public UUID getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(UUID id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
