@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -15,8 +16,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class SecurityConfig {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http, UserRepositoryJwtAuthenticationConverter authenticationConverter) throws Exception {
+		XorCsrfTokenRequestAttributeHandler requestHandler = new XorCsrfTokenRequestAttributeHandler();
+		requestHandler.setCsrfRequestAttributeName("_csrf");
 		http
 			.cors(Customizer.withDefaults())
+			.csrf((csrf) -> csrf.csrfTokenRequestHandler(requestHandler))
 			.authorizeHttpRequests((authz) -> authz.anyRequest().authenticated())
 			.oauth2ResourceServer((oauth2) -> oauth2
 				.jwt((jwt) -> jwt
