@@ -17,7 +17,7 @@ public class SecurityConfig {
 	SecurityFilterChain filterChain(HttpSecurity http, UserRepositoryJwtAuthenticationConverter authenticationConverter) throws Exception {
 		http
 			.cors(Customizer.withDefaults())
-			.authorizeRequests((authz) -> authz.anyRequest().authenticated())
+			.authorizeHttpRequests((authz) -> authz.anyRequest().authenticated())
 			.oauth2ResourceServer((oauth2) -> oauth2
 				.jwt((jwt) -> jwt
 					.jwtAuthenticationConverter(authenticationConverter)
