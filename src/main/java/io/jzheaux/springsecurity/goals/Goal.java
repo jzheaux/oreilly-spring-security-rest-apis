@@ -5,9 +5,12 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.util.UUID;
 
+import org.hibernate.annotations.Type;
+
 @Entity
 public class Goal {
 	@Id
+	@Type(type="uuid-char")
 	private UUID id;
 
 	@Column
